@@ -8,7 +8,7 @@ import { ZTABarChart, AnomalyPieChart, ScoreLineChart, ConfusionMatrix, MetricsR
 import {
   Users, AlertTriangle, ShieldCheck, Activity,
   Upload, Cpu, Play, Download, RefreshCw,
-  CheckCircle, XCircle, Clock, Database,
+  CheckCircle, XCircle, Clock, Database, Bot, Settings,
 } from 'lucide-react'
 
 const API = 'http://localhost:8000'
@@ -176,6 +176,34 @@ export default function Dashboard() {
   const totalAnomalies = metrics?.total_anomalies ?? (status.predicted ? predictions.filter(r => r.predicted_anomaly === 1).length : '—')
   const zta            = metrics?.zta_distribution ?? null
 
+  // Bot state
+  const [botModalOpen, setBotModalOpen] = useState(false)
+  const [botConfig, setBotConfig] = useState({ token: '', chat_id: '', enabled: false })
+  const [savingBot, setSavingBot] = useState(false)
+
+  // ── Fetch Bot Config ──────────────────────────────────────────────────────
+  const fetchBotConfig = async () => {
+    try {
+      const res = await http.get('/bot/config')
+      setBotConfig(res.data)
+    } catch (err) {
+      console.error('Failed to fetch bot config')
+    }
+  }
+
+  const handleSaveBot = async () => {
+    setSavingBot(true)
+    try {
+      await http.post('/bot/config', botConfig)
+      toast('Bot configuration updated', 'success')
+      setBotModalOpen(false)
+    } catch (err) {
+      toast('Failed to update bot config', 'error')
+    } finally {
+      setSavingBot(false)
+    }
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-cyber-bg">
@@ -189,8 +217,16 @@ export default function Dashboard() {
             <h2 className="text-lg font-bold text-white">Anomaly Detection Dashboard</h2>
             <p className="text-cyber-muted text-xs mt-0.5">Big Data Analytics · Zero Trust Architecture · Isolation Forest</p>
           </div>
-          {/* Export button */}
-          <button onClick={handleExport}
+          <div className="flex items-center gap-2">
+            {/* Bot Settings */}
+            <button onClick={() => { fetchBotConfig(); setBotModalOpen(true) }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all
+                         ${botConfig.enabled ? 'border-cyber-teal/50 text-cyber-teal bg-cyber-teal/5' : 'border-cyber-border text-cyber-muted hover:text-white'}`}>
+              <Bot className="w-4 h-4" />
+              Security Bot {botConfig.enabled ? 'ON' : 'OFF'}
+            </button>
+            {/* Export button */}
+            <button onClick={handleExport}
             disabled={!status.predicted}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all
                        border-cyber-border text-cyber-muted hover:text-cyber-teal hover:border-cyber-teal/50
@@ -199,6 +235,7 @@ export default function Dashboard() {
             Export CSV
           </button>
         </div>
+      </div>
 
         {/* ── Action bar ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -336,6 +373,76 @@ export default function Dashboard() {
         <DataTable rows={tableData} loading={tableLoading} />
 
       </main>
+
+      {/* ── Bot Config Modal ────────────────────────────────────────────────── */}
+      {botModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-cyber-bg/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-cyber-card border border-cyber-border rounded-2xl w-full max-w-md shadow-2xl p-6 animate-slide-up">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-cyber-teal/10 flex items-center justify-center">
+                <Bot className="w-6 h-6 text-cyber-teal" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">AI Security Bot</h3>
+                <p className="text-xs text-cyber-muted">Telegram Real-time Alerts & Analysis</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-cyber-muted mb-1.5 font-medium uppercase tracking-wider">Bot Token (@BotFather)</label>
+                <input
+                  type="password"
+                  value={botConfig.token}
+                  onChange={e => setBotConfig(c => ({ ...c, token: e.target.value }))}
+                  placeholder="0000000000:ABC..."
+                  className="w-full text-sm font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-cyber-muted mb-1.5 font-medium uppercase tracking-wider">Target Chat ID (@userinfobot)</label>
+                <input
+                  type="text"
+                  value={botConfig.chat_id}
+                  onChange={e => setBotConfig(c => ({ ...c, chat_id: e.target.value }))}
+                  placeholder="123456789"
+                  className="w-full text-sm font-mono"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-cyber-bg rounded-lg border border-cyber-border">
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-white">Real-time Notifications</span>
+                  <span className="text-[10px] text-cyber-muted">Send AI-analyzed alerts for high risk events</span>
+                </div>
+                <button
+                  onClick={() => setBotConfig(c => ({ ...c, enabled: !c.enabled }))}
+                  className={`w-12 h-6 rounded-full transition-all relative ${botConfig.enabled ? 'bg-cyber-teal' : 'bg-cyber-border'}`}>
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${botConfig.enabled ? 'left-7' : 'left-1'}`} />
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-8 flex gap-3">
+              <button onClick={() => setBotModalOpen(false)}
+                className="flex-1 px-4 py-2 text-sm font-medium text-cyber-muted hover:text-white transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveBot}
+                disabled={savingBot}
+                className="flex-1 px-4 py-2 text-sm font-bold rounded-lg bg-cyber-teal text-cyber-bg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2">
+                {savingBot ? <div className="w-4 h-4 border-2 border-cyber-bg/40 border-t-cyber-bg rounded-full animate-spin" /> : 'Save Config'}
+              </button>
+            </div>
+            
+            <p className="mt-4 text-[10px] text-center text-cyber-muted italic">
+              Note: Telegram alert logic uses simulated AI analysis for anomalous sessions.
+            </p>
+          </div>
+        </div>
+      )}
 
       <Toast toasts={toasts} />
     </div>

@@ -12,10 +12,14 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -24,6 +28,7 @@ import io
 
 from utils import load_and_process, prepare_features, zta_decision, get_summary_stats
 from model import detector
+from bot_service import telegram_bot
 
 # ─── Application setup ────────────────────────────────────────────────────────
 app = FastAPI(
@@ -102,6 +107,11 @@ class LoginResponse(BaseModel):
     token: str
     username: str
     message: str
+
+class BotConfig(BaseModel):
+    token: str
+    chat_id: str
+    enabled: bool
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  AUTH
@@ -229,7 +239,10 @@ async def train_model(token: str = Depends(verify_token)):
 #  PREDICT
 # ══════════════════════════════════════════════════════════════════════════════
 @app.get("/predict", tags=["Model"])
-async def get_predictions(token: str = Depends(verify_token)):
+async def get_predictions(
+    background_tasks: BackgroundTasks,
+    token: str = Depends(verify_token)
+):
     """Run model inference and return predictions with ZTA decisions."""
     t0 = time.time()
     if state["X_scaled"] is None:
@@ -249,6 +262,12 @@ async def get_predictions(token: str = Depends(verify_token)):
 
     # Evaluate metrics
     state["metrics"] = detector.evaluate(state["y"])
+
+    # TRIGGER TELEGRAM ALERTS FOR HIGH-RISK EVENTS (Sampled for research demo)
+    if os.getenv("ALERTS_ENABLED") == "true":
+        high_risk = df[df["zta_decision"] != "ALLOW"].tail(5).to_dict(orient="records")
+        for alert_row in high_risk:
+            background_tasks.add_task(telegram_bot.send_alert, alert_row)
 
     output_cols = [
         "user_id", "timestamp", "ip_address", "location",
@@ -334,6 +353,29 @@ async def export_predictions(token: str = Depends(verify_token)):
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=dataset_with_predictions.csv"},
     )
+
+@app.get("/bot/config", tags=["Admin"])
+async def get_bot_config(token: str = Depends(verify_token)):
+    """Return current bot configuration."""
+    return {
+        "token":   os.getenv("TELEGRAM_BOT_TOKEN", ""),
+        "chat_id": os.getenv("TELEGRAM_CHAT_ID", ""),
+        "enabled": os.getenv("ALERTS_ENABLED", "false") == "true",
+    }
+
+@app.post("/bot/config", tags=["Admin"])
+async def update_bot_config(body: BotConfig, token: str = Depends(verify_token)):
+    """Update bot configuration and reload the service."""
+    os.environ["TELEGRAM_BOT_TOKEN"] = body.token
+    os.environ["TELEGRAM_CHAT_ID"] = body.chat_id
+    os.environ["ALERTS_ENABLED"] = "true" if body.enabled else "false"
+    
+    # Update singleton instance
+    telegram_bot.token = body.token
+    telegram_bot.chat_id = body.chat_id
+    telegram_bot.is_enabled = body.enabled
+    
+    return {"success": True, "message": "Bot configuration updated."}
 
 # ─── Health check ─────────────────────────────────────────────────────────────
 @app.get("/health", tags=["System"])
