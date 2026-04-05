@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Big Data Analytics + Zero Trust Architecture Diagram</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0e1a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px 60px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 32px;
+      max-width: 900px;
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+    }
+
+    .export-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: opacity 0.2s;
+    }
+    .export-btn:hover { opacity: 0.85; }
+
+    /* ── DIAGRAM CANVAS ── */
+    .diagram-wrapper {
+      width: 1100px;
+      background: #0d1220;
+      border: 1px solid #1e2d4a;
+      border-radius: 20px;
+      padding: 36px 36px 48px;
+      position: relative;
+      box-shadow: 0 0 60px rgba(59,130,246,0.08), 0 25px 60px rgba(0,0,0,0.5);
+    }
+
+    /* ── LAYER CARDS ── */
+    .layer {
+      border-radius: 14px;
+      padding: 14px 18px 16px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .layer-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .layer-title .badge {
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 0.6rem;
+      letter-spacing: 0.8px;
+    }
+
+    .components-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    /* ── COMPONENT BOXES ── */
+    .comp {
+      border-radius: 10px;
+      padding: 11px 14px;
+      flex: 1;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      position: relative;
+      transition: transform 0.15s;
+    }
+    .comp:hover { transform: translateY(-2px); }
+
+    .comp-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+
+    .comp-name {
+      font-size: 0.72rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .comp-sub {
+      font-size: 0.6rem;
+      opacity: 0.7;
+      line-height: 1.3;
+    }
+
+    /* ── ARROW CONNECTOR ── */
+    .arrow-down {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 28px;
+      position: relative;
+      margin: -2px 0;
+    }
+
+    .arrow-down::before {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 18px;
+      top: 0;
+    }
+
+    .arrow-down::after {
+      content: '▼';
+      font-size: 0.7rem;
+      position: absolute;
+      bottom: 2px;
+    }
+
+    /* ── COLOR THEMES PER LAYER ── */
+
+    /* L1 Data Source — deep teal */
+    .l1 { background: linear-gradient(135deg, #0c2233 0%, #0e2a3a 100%); border: 1px solid #164e63; }
+    .l1 .layer-title { color: #22d3ee; }
+    .l1 .badge { background: rgba(34,211,238,0.15); color: #22d3ee; border: 1px solid rgba(34,211,238,0.3); }
+    .l1 .comp { background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); }
+    .l1 .comp-name { color: #a5f3fc; }
+    .l1 .comp-sub { color: #67e8f9; }
+    .l1 .arrow-down::before { background: #22d3ee; }
+    .l1 .arrow-down::after { color: #22d3ee; }
+
+    /* L2 Ingestion — orange */
+    .l2 { background: linear-gradient(135deg, #1c1208 0%, #211608 100%); border: 1px solid #78350f; }
+    .l2 .layer-title { color: #fb923c; }
+    .l2 .badge { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+    .l2 .comp { background: rgba(251,146,60,0.06); border: 1px solid rgba(251,146,60,0.2); }
+    .l2 .comp-name { color: #fed7aa; }
+    .l2 .comp-sub { color: #fdba74; }
+
+    /* L3 Processing — indigo */
+    .l3 { background: linear-gradient(135deg, #11103a 0%, #13124a 100%); border: 1px solid #3730a3; }
+    .l3 .layer-title { color: #818cf8; }
+    .l3 .badge { background: rgba(129,140,248,0.15); color: #818cf8; border: 1px solid rgba(129,140,248,0.3); }
+    .l3 .comp { background: rgba(129,140,248,0.06); border: 1px solid rgba(129,140,248,0.2); }
+    .l3 .comp-name { color: #c7d2fe; }
+    .l3 .comp-sub { color: #a5b4fc; }
+
+    /* L4 Storage — amber */
+    .l4 { background: linear-gradient(135deg, #1a1508 0%, #211a08 100%); border: 1px solid #92400e; }
+    .l4 .layer-title { color: #fbbf24; }
+    .l4 .badge { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+    .l4 .comp { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2); }
+    .l4 .comp-name { color: #fde68a; }
+    .l4 .comp-sub { color: #fcd34d; }
+
+    /* L5 ML/Analytics — violet */
+    .l5 { background: linear-gradient(135deg, #180f2e 0%, #1e1040 100%); border: 1px solid #6d28d9; }
+    .l5 .layer-title { color: #a78bfa; }
+    .l5 .badge { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+    .l5 .comp { background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.2); }
+    .l5 .comp-name { color: #ddd6fe; }
+    .l5 .comp-sub { color: #c4b5fd; }
+
+    /* L6 Zero Trust — red/rose */
+    .l6 { background: linear-gradient(135deg, #1c0a10 0%, #230d14 100%); border: 1px solid #9f1239; }
+    .l6 .layer-title { color: #f43f5e; }
+    .l6 .badge { background: rgba(244,63,94,0.15); color: #f43f5e; border: 1px solid rgba(244,63,94,0.3); }
+    .l6 .comp { background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.2); }
+    .l6 .comp-name { color: #fecdd3; }
+    .l6 .comp-sub { color: #fda4af; }
+    .l6 .comp.highlight { background: rgba(244,63,94,0.14); border-color: rgba(244,63,94,0.5); }
+
+    /* L7 Application — emerald */
+    .l7 { background: linear-gradient(135deg, #041a10 0%, #061e13 100%); border: 1px solid #065f46; }
+    .l7 .layer-title { color: #34d399; }
+    .l7 .badge { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+    .l7 .comp { background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.2); }
+    .l7 .comp-name { color: #a7f3d0; }
+    .l7 .comp-sub { color: #6ee7b7; }
+
+    /* L8 Monitoring — sky */
+    .l8 { background: linear-gradient(135deg, #080f1e 0%, #0a1428 100%); border: 1px solid #0c4a6e; }
+    .l8 .layer-title { color: #38bdf8; }
+    .l8 .badge { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .l8 .comp { background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.2); }
+    .l8 .comp-name { color: #bae6fd; }
+    .l8 .comp-sub { color: #7dd3fc; }
+
+    /* ── GLOBAL ARROWS ── */
+    .arrow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 4px 0;
+      gap: 6px;
+    }
+
+    .arrow-line {
+      width: 2px;
+      height: 22px;
+      background: linear-gradient(180deg, #334155, #475569);
+      border-radius: 2px;
+    }
+
+    .arrow-label {
+      font-size: 0.58rem;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      background: #111827;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid #1e293b;
+    }
+
+    .arrow-chevron {
+      color: #475569;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    .arrow-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── ZTA DECISION ROW ── */
+    .decision-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .decision-box {
+      flex: 1;
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .decision-allow { background: rgba(16,185,129,0.15); border: 1.5px solid #10b981; color: #34d399; }
+    .decision-deny  { background: rgba(239,68,68,0.15);  border: 1.5px solid #ef4444; color: #f87171; }
+    .decision-mfa   { background: rgba(251,191,36,0.15); border: 1.5px solid #fbbf24; color: #fcd34d; }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #1e293b;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.65rem;
+      color: #94a3b8;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    /* ── INNER ARROWS FOR INGESTION ── */
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #fb923c;
+      opacity: 0.7;
+    }
+
+    /* ── ZTA inner layout ── */
+    .zta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .zta-center {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+    }
+
+    .pdp-pep {
+      display: flex;
+      flex: 1;
+      gap: 10px;
+    }
+
+    /* title watermark */
+    .diagram-title {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .diagram-title h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.5;
+      letter-spacing: 0.2px;
+    }
+
+    .diagram-title p {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .diagram-subtitle-bar {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 30px;
+      padding: 4px 14px;
+      margin-top: 8px;
+    }
+
+    .diagram-subtitle-bar span {
+      font-size: 0.62rem;
+      color: #60a5fa;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+
+    /* Tool logo chips */
+    .tool-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.58rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      margin-top: 3px;
+    }
+
+    .chip-kafka  { background: rgba(0,150,200,0.2); color: #67e8f9; border: 1px solid rgba(0,150,200,0.3); }
+    .chip-spark  { background: rgba(229,57,53,0.2); color: #fc8181; border: 1px solid rgba(229,57,53,0.3); }
+    .chip-hadoop { background: rgba(251,191,36,0.2); color: #fcd34d; border: 1px solid rgba(251,191,36,0.3); }
+
+    .number-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 0.6rem;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>System Architecture Diagram</h1>
+  <p>Implementation of Big Data Analytics based on Zero Trust Architecture for Anomaly Detection in Information Systems</p>
+  <button class="export-btn" onclick="window.print()">🖨️ Print / Export as PDF</button>
+</div>
+
+<div class="diagram-wrapper" id="diagram">
+
+  <!-- DIAGRAM TITLE -->
+  <div class="diagram-title">
+    <h2>Implementation of Big Data Analytics based on Zero Trust Architecture<br>for Anomaly Detection in Information Systems</h2>
+    <p>System Architecture — Data Flow &amp; Component Interaction Model</p>
+    <div>
+      <div class="diagram-subtitle-bar">
+        <span>🔵 BIG DATA ANALYTICS</span>
+        <span style="color:#475569">│</span>
+        <span>🔴 ZERO TRUST SECURITY</span>
+        <span style="color:#475569">│</span>
+        <span>🟣 MACHINE LEARNING</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 1 — DATA SOURCE
+  ══════════════════════════════════════════════ -->
+  <div class="layer l1">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(34,211,238,0.2);color:#22d3ee;">1</span>
+      🗃️ DATA SOURCE LAYER
+      <span class="badge">Raw Data Collection</span>
+    </div>
+    <div class="components-row">
+      <div class="comp">
+        <span class="comp-icon">👤</span>
+        <span class="comp-name">User Activity Logs</span>
+        <span class="comp-sub">Login time · IP address<br>Device info · Access behavior</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">🌐</span>
+        <span class="comp-name">Network Traffic Logs</span>
+        <span class="comp-sub">Packet flow · Protocols<br>Bandwidth · Port scanning</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">📋</span>
+        <span class="comp-name">Application Logs</span>
+        <span class="comp-sub">API calls · Error logs<br>Access patterns · Events</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="arrow">
+    <div class="arrow-col">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">⚡ Real-time streaming</div>
+      <div class="arrow-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 2 — DATA INGESTION
+  ══════════════════════════════════════════════ -->
+  <div class="layer l2">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(251,146,60,0.2);color:#fb923c;">2</span>
+      ⚡ DATA INGESTION LAYER
+      <span class="badge">Stream Processing</span>
+    </div>
+    <div class="components-row" style="align-items:center;">
+      <div class="comp">
+        <span class="comp-icon">📡</span>
+        <span class="comp-name">Data Producers</span>
+        <span class="comp-sub">Log agents · Collectors<br>Forwarders · Sensors</span>
+      </div>
+      <div class="flow-arrow" style="flex:0; min-width:30px; font-size:1.4rem; opacity:0.8;">➜</div>
+      <div class="comp" style="border-width:2px; border-color:rgba(251,146,60,0.5);">
+        <span class="comp-icon">🐝</span>
+        <span class="comp-name">Apache Kafka</span>
+        <span class="comp-sub">Message broker<br>Topic partitioning<br>Fault-tolerant streaming</span>
+        <span class="tool-chip chip-kafka">KAFKA CLUSTER</span>
+      </div>
+      <div class="flow-arrow" style="flex:0; min-width:30px; font-size:1.4rem; opacity:0.8;">➜</div>
+      <div class="comp">
+        <span class="comp-icon">🔀</span>
+        <span class="comp-name">Kafka Consumer</span>
+        <span class="comp-sub">Stream subscription<br>Consumer groups<br>Offset management</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="arrow">
+    <div class="arrow-col">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">📦 Distributed data stream</div>
+      <div class="arrow-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 3 — BIG DATA PROCESSING
+  ══════════════════════════════════════════════ -->
+  <div class="layer l3">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(129,140,248,0.2);color:#818cf8;">3</span>
+      ⚙️ BIG DATA PROCESSING LAYER
+      <span class="badge">Distributed Processing</span>
+    </div>
+    <div class="components-row">
+      <div class="comp" style="flex:1.2;">
+        <span class="comp-icon">🔥</span>
+        <span class="comp-name">Apache Spark Engine</span>
+        <span class="comp-sub">Spark Streaming (real-time)<br>SparkSQL · MLlib<br>DAG execution scheduler</span>
+        <span class="tool-chip chip-spark">SPARK CLUSTER</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">🧹</span>
+        <span class="comp-name">Data Cleaning</span>
+        <span class="comp-sub">Null handling<br>Deduplication<br>Outlier removal</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">📐</span>
+        <span class="comp-name">Normalization</span>
+        <span class="comp-sub">Min-Max scaling<br>Z-score standard<br>Encoding</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">🔬</span>
+        <span class="comp-name">Feature Extraction</span>
+        <span class="comp-sub">Behavioral features<br>Network features<br>Temporal features</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="arrow">
+    <div class="arrow-col">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">💾 Store raw &amp; processed data</div>
+      <div class="arrow-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 4 — STORAGE
+  ══════════════════════════════════════════════ -->
+  <div class="layer l4">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(251,191,36,0.2);color:#fbbf24;">4</span>
+      💾 STORAGE LAYER
+      <span class="badge">Persistent Data Store</span>
+    </div>
+    <div class="components-row">
+      <div class="comp">
+        <span class="comp-icon">🐘</span>
+        <span class="comp-name">Hadoop HDFS</span>
+        <span class="comp-sub">Distributed file system<br>NameNode · DataNode<br>High availability</span>
+        <span class="tool-chip chip-hadoop">HDFS CLUSTER</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">🏞️</span>
+        <span class="comp-name">Data Lake</span>
+        <span class="comp-sub">Raw data zone<br>Processed data zone<br>Schema-on-read</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">📂</span>
+        <span class="comp-name">Raw Data Store</span>
+        <span class="comp-sub">Unprocessed logs<br>Original events<br>Audit trail</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">✅</span>
+        <span class="comp-name">Processed Data Store</span>
+        <span class="comp-sub">Feature vectors<br>Cleaned datasets<br>Aggregations</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="arrow">
+    <div class="arrow-col">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">🤖 Training &amp; inference data</div>
+      <div class="arrow-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 5 — ML / ANALYTICS
+  ══════════════════════════════════════════════ -->
+  <div class="layer l5">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(167,139,250,0.2);color:#a78bfa;">5</span>
+      🤖 ANALYTICS &amp; MACHINE LEARNING LAYER
+      <span class="badge">Anomaly Detection</span>
+    </div>
+    <div class="components-row">
+      <div class="comp">
+        <span class="comp-icon">🏋️</span>
+        <span class="comp-name">Model Training</span>
+        <span class="comp-sub">Historical data learning<br>Cross-validation<br>Hyperparameter tuning</span>
+      </div>
+      <div class="comp" style="border-width:2px; border-color:rgba(167,139,250,0.5);">
+        <span class="comp-icon">🌲</span>
+        <span class="comp-name">Isolation Forest</span>
+        <span class="comp-sub">Unsupervised anomaly detection<br>Path length scoring<br>Contamination factor</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">🔮</span>
+        <span class="comp-name">Prediction Pipeline</span>
+        <span class="comp-sub">Real-time inference<br>Anomaly scoring<br>Threshold evaluation</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">📊</span>
+        <span class="comp-name">Model Output</span>
+        <span class="comp-sub">Anomaly score (-1/+1)<br>Risk level: Low/Med/High<br>Confidence score</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="arrow">
+    <div class="arrow-col">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">🛡️ Risk signal → ZTA enforcement</div>
+      <div class="arrow-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 6 — ZERO TRUST ARCHITECTURE
+  ══════════════════════════════════════════════ -->
+  <div class="layer l6">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(244,63,94,0.2);color:#f43f5e;">6</span>
+      🛡️ ZERO TRUST ARCHITECTURE LAYER
+      <span class="badge">Never Trust, Always Verify</span>
+    </div>
+
+    <!-- ZTA trust evaluation components -->
+    <div class="components-row" style="margin-bottom:10px;">
+      <div class="comp">
+        <span class="comp-icon">🪪</span>
+        <span class="comp-name">Identity Verification</span>
+        <span class="comp-sub">MFA · SSO · OAuth 2.0<br>User authentication<br>Certificate validation</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">💻</span>
+        <span class="comp-name">Device Trust Evaluation</span>
+        <span class="comp-sub">Device posture check<br>Compliance status<br>Certificate binding</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">🧠</span>
+        <span class="comp-name">Behavior Analysis</span>
+        <span class="comp-sub">Anomaly detection output<br>User baseline comparison<br>Session risk scoring</span>
+      </div>
+    </div>
+
+    <!-- PDP / PEP row -->
+    <div class="pdp-pep" style="margin-bottom:10px;">
+      <div class="comp highlight" style="flex:1; border-color: rgba(244,63,94,0.6);">
+        <span class="comp-icon">🧩</span>
+        <span class="comp-name" style="font-size:0.78rem;">Policy Decision Point (PDP)</span>
+        <span class="comp-sub">Aggregates identity + device + behavior signals<br>Evaluates access policies<br>Generates access decision</span>
+      </div>
+      <div style="display:flex; align-items:center; font-size:1.2rem; color:#f43f5e; padding:0 6px;">⇄</div>
+      <div class="comp highlight" style="flex:1; border-color: rgba(244,63,94,0.6);">
+        <span class="comp-icon">🔒</span>
+        <span class="comp-name" style="font-size:0.78rem;">Policy Enforcement Point (PEP)</span>
+        <span class="comp-sub">Intercepts all access requests<br>Enforces PDP decisions<br>Acts as security gateway</span>
+      </div>
+    </div>
+
+    <!-- Decision outcomes -->
+    <div style="margin-bottom:6px;">
+      <div style="font-size:0.62rem; color:#f43f5e; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:6px; opacity:0.8;">Risk-Based Access Control Decision</div>
+      <div class="decision-row">
+        <div class="decision-box decision-allow">✅ ALLOW — Low Risk</div>
+        <div class="decision-box decision-mfa">⚠️ VERIFY — Medium Risk (Step-up Auth)</div>
+        <div class="decision-box decision-deny">🚫 DENY — High Risk / Anomaly Detected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="arrow">
+    <div class="arrow-col">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">🔐 Controlled access grant</div>
+      <div class="arrow-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 7 — APPLICATION
+  ══════════════════════════════════════════════ -->
+  <div class="layer l7">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(52,211,153,0.2);color:#34d399;">7</span>
+      🌍 APPLICATION LAYER
+      <span class="badge">Protected Resources</span>
+    </div>
+    <div class="components-row">
+      <div class="comp" style="flex:2;">
+        <span class="comp-icon">🖥️</span>
+        <span class="comp-name">Secure Information System</span>
+        <span class="comp-sub">Web-based application · REST API backend<br>Protected by Zero Trust gateway decisions</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">📁</span>
+        <span class="comp-name">Protected Resources</span>
+        <span class="comp-sub">Sensitive data<br>Internal APIs<br>Admin panels</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">👥</span>
+        <span class="comp-name">End Users</span>
+        <span class="comp-sub">Employees · Admins<br>Remote workers<br>Service accounts</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW (bidirectional feedback) -->
+  <div class="arrow">
+    <div class="arrow-col">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">📈 Metrics, alerts &amp; telemetry</div>
+      <div class="arrow-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 8 — MONITORING & VISUALIZATION
+  ══════════════════════════════════════════════ -->
+  <div class="layer l8">
+    <div class="layer-title">
+      <span class="number-badge" style="background:rgba(56,189,248,0.2);color:#38bdf8;">8</span>
+      📊 MONITORING &amp; VISUALIZATION LAYER
+      <span class="badge">Observability</span>
+    </div>
+    <div class="components-row">
+      <div class="comp">
+        <span class="comp-icon">🎛️</span>
+        <span class="comp-name">Streamlit Dashboard</span>
+        <span class="comp-sub">Real-time anomaly viz<br>Risk score trends<br>Interactive ML explorer</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">📉</span>
+        <span class="comp-name">Grafana Monitoring</span>
+        <span class="comp-sub">System metrics<br>Time-series plots<br>Alert rules &amp; routing</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">🚨</span>
+        <span class="comp-name">Anomaly Alerts</span>
+        <span class="comp-sub">Email · Webhook · SMS<br>Incident escalation<br>SIEM integration</span>
+      </div>
+      <div class="comp">
+        <span class="comp-icon">📜</span>
+        <span class="comp-name">Audit &amp; Compliance</span>
+        <span class="comp-sub">Access logs archive<br>Policy change history<br>Regulatory reports</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LEGEND
+  ══════════════════════════════════════════════ -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;"></div>Data Source</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fb923c;"></div>Data Ingestion (Kafka)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#818cf8;"></div>Big Data Processing (Spark)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div>Storage (HDFS / Data Lake)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div>ML / Anomaly Detection</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f43f5e;"></div>Zero Trust Architecture</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34d399;"></div>Application Layer</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#38bdf8;"></div>Monitoring &amp; Visualization</div>
+    <div class="legend-item">
+      <div style="width:30px; height:2px; background:linear-gradient(90deg,#334155,#475569); border-radius:2px;"></div>
+      Data flow direction
+    </div>
+  </div>
+
+</div>
+
+<style>
+  @media print {
+    body { background: white; padding: 10px; }
+    .page-header { display:none; }
+    .diagram-wrapper {
+      border: none;
+      box-shadow: none;
+      width: 100%;
+      background: white;
+    }
+    .diagram-title h2 { color: #1e293b; }
+    .diagram-title p  { color: #64748b; }
+    .diagram-subtitle-bar { background: #f1f5f9; border-color: #e2e8f0; }
+    .diagram-subtitle-bar span { color: #3b82f6; }
+  }
+</style>
+
+</body>
+</html>

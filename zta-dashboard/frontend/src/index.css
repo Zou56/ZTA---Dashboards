@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:     #0a0e1a;
+  --card:   #0d1220;
+  --border: #1e2d4a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--bg);
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--card); }
+::-webkit-scrollbar-thumb  { background: #1e2d4a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2d4060; }
+
+/* Input styles */
+input, select, textarea {
+  background: #0a0e1a;
+  color: #e2e8f0;
+  border: 1px solid #1e2d4a;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus, select:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.12);
+}
+
+/* Glow effects */
+.glow-teal  { box-shadow: 0 0 20px rgba(34, 211, 238, 0.12); }
+.glow-rose  { box-shadow: 0 0 20px rgba(244, 63, 94, 0.12);  }
+.glow-green { box-shadow: 0 0 20px rgba(52, 211, 153, 0.12); }
+
+/* Table */
+.data-table th {
+  background: rgba(30, 45, 74, 0.5);
+  color: #8b949e;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.7rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.data-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #1e2d4a;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.data-table tr:hover td { background: rgba(30, 45, 74, 0.3); }
+
+/* ZTA Badge */
+.badge-allow  { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+.badge-verify { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.badge-deny   { background: rgba(244,63,94,0.15);  color: #f43f5e; border: 1px solid rgba(244,63,94,0.3);  }
