@@ -9,6 +9,7 @@ import {
   Users, AlertTriangle, ShieldCheck, Activity,
   Upload, Cpu, Play, Download, RefreshCw,
   CheckCircle, XCircle, Clock, Database, Bot, Settings,
+  Skull
 } from 'lucide-react'
 
 const API = 'http://localhost:8000'
@@ -69,6 +70,7 @@ export default function Dashboard() {
   const [uploading,    setUploading]    = useState(false)
   const [training,     setTraining]     = useState(false)
   const [detecting,    setDetecting]    = useState(false)
+  const [simulating,   setSimulating]   = useState(false)
   const [tableLoading, setTableLoading] = useState(false)
 
   const fileRef = useRef()
@@ -154,6 +156,26 @@ export default function Dashboard() {
     }
   }
 
+  // ── Simulate Attack ───────────────────────────────────────────────────────
+  const handleSimulateAttack = async () => {
+    if (!status.dataset) { toast('Upload a dataset first.', 'error'); return }
+    setSimulating(true)
+    try {
+      const res = await http.post('/simulate-attack')
+      toast(`🚨 ${res.data.message}`, 'error', 6000)
+      setStatus(s => ({ ...s, trained: false, predicted: false }))
+      // Table is now out of sync with new data, so we reload it. 
+      // (Metrics remain null until retraining)
+      setMetrics(null)
+      setPredictions([])
+      await loadTableData()
+    } catch (err) {
+      toast(err.response?.data?.detail || 'Failed to simulate attack', 'error')
+    } finally {
+      setSimulating(false)
+    }
+  }
+
   // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = async () => {
     if (!status.predicted) { toast('Run detection first.', 'error'); return }
@@ -209,7 +231,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-cyber-bg">
       <Navbar status={status} />
 
-      <main className="max-w-screen-2xl mx-auto px-6 py-6 space-y-6 animate-fade-in">
+      <main className="max-w-[1200px] mx-auto px-6 py-6 space-y-8 animate-fade-in">
 
         {/* ── Page title ──────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -238,7 +260,7 @@ export default function Dashboard() {
       </div>
 
         {/* ── Action bar ──────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
 
           {/* Upload */}
           <button onClick={() => fileRef.current?.click()}
@@ -294,6 +316,24 @@ export default function Dashboard() {
               <div className="text-xs text-cyber-muted">{detecting ? 'Detecting anomalies…' : 'Predict + Zero Trust decisions'}</div>
             </div>
             {status.predicted && <CheckCircle className="w-4 h-4 text-cyber-green ml-auto" />}
+          </button>
+          
+          {/* Simulate Attack */}
+          <button onClick={handleSimulateAttack}
+            disabled={!status.dataset || simulating}
+            className="flex items-center gap-3 px-5 py-4 rounded-xl border transition-all text-left
+                       bg-gradient-to-r from-red-900/10 to-transparent border-red-900/30
+                       hover:from-red-900/20 hover:border-red-900/50 hover:shadow-[0_0_15px_rgba(220,38,38,0.2)]
+                       disabled:opacity-50 group">
+            <div className="w-10 h-10 rounded-lg bg-red-900/20 flex items-center justify-center flex-shrink-0 group-hover:bg-red-900/40 transition-colors">
+              {simulating
+                ? <div className="w-5 h-5 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                : <Skull className="w-5 h-5 text-red-500" />}
+            </div>
+            <div>
+              <div className="text-sm font-bold text-red-400">Simulate Attack</div>
+              <div className="text-[11px] text-red-500/70">{simulating ? 'Injecting payload…' : 'Inject malicious session'}</div>
+            </div>
           </button>
         </div>
 

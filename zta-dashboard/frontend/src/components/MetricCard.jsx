@@ -14,7 +14,7 @@ export default function MetricCard({ icon: Icon, label, value, sub, color = 'tea
   const c = colors[color] ?? colors.teal
 
   return (
-    <div className={`bg-cyber-card border ${c.border} rounded-xl p-4 flex items-start gap-4 animate-slide-up`}>
+    <div className={`bg-cyber-card border ${c.border} rounded-xl p-4 flex flex-col justify-between items-start gap-2 animate-slide-up transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 h-[120px]`}>
       <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center flex-shrink-0`}>
         {Icon && <Icon className={`w-5 h-5 ${c.icon}`} />}
       </div>

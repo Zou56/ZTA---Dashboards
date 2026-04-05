@@ -19,6 +19,8 @@ load_dotenv()
 
 import numpy as np
 import pandas as pd
+import random
+import string
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -283,6 +285,55 @@ async def get_predictions(
         "total":       len(result_df),
         "predictions": result_df.replace({np.nan: None}).to_dict(orient="records"),
     }
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  SIMULATE ATTACK
+# ══════════════════════════════════════════════════════════════════════════════
+@app.post("/simulate-attack", tags=["Demo"])
+async def simulate_attack(token: str = Depends(verify_token)):
+    """Inject a simulated attack (anomaly) into the dataset for live demonstration."""
+    if state["df"] is None:
+        raise HTTPException(status_code=400, detail="Upload a dataset first.")
+
+    df = state["df"]
+    
+    # Create a completely anomalous record
+    malicious_user = f"ATTACK_{random.randint(100, 999)}"
+    
+    attack_row = {
+        "user_id": malicious_user,
+        "timestamp": datetime.now(),
+        "device_type": "Unknown-Kali-Linux",
+        "location": "North Korea (Simulated)",
+        "activity_count": random.randint(1000, 5000),
+        "session_duration": random.randint(1, 5), # extremely short
+        "login_status": "success",
+        "access_resource": "root_shell_api",
+        "device_change_flag": 1,
+        "location_change_flag": 1,
+        "midnight_login_flag": 1,
+        "high_activity_flag": 1,
+        "short_session_flag": 1,
+        "device_type_enc": random.randint(10, 99),
+        "access_resource_enc": random.randint(10, 99),
+        "location_enc": random.randint(10, 99),
+        "login_hour": 3 # 3 AM
+    }
+    
+    # Fill any missing columns with blanks to match df schema
+    for col in df.columns:
+        if col not in attack_row:
+            attack_row[col] = df[col].iloc[0] if len(df) > 0 else 0
+            
+    # Append to dataframe and rebuild features
+    from utils import prepare_features
+    new_df = pd.concat([df, pd.DataFrame([attack_row])], ignore_index=True)
+    state["df"] = new_df
+    X_scaled, y, scaler, features = prepare_features(new_df)
+    state["X_scaled"] = X_scaled
+    state["y"] = y
+    
+    return {"message": f"Malicious record injected for user {malicious_user}. Retrain and re-run detection.", "user_id": malicious_user}
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  METRICS
