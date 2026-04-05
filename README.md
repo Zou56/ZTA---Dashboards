@@ -30,9 +30,14 @@ This repository contains a full-stack implementation of a cybersecurity monitori
 
 ```text
 Metode Penelitian/
-├── datasets/            # Synthetic CSV logs (Advanced ZTA dataset)
-├── docs/                # Architecture diagrams & Evaluation screenshots
-├── scripts/             # Data generation & Anomaly detection scripts
+├── datasets/            # User activity logs & datasets
+│   ├── raw/             # Initial generated logs
+│   ├── processed/       # Cleaned & high-quality datasets (Advanced ZTA)
+│   └── results/         # Final analysis & predictions
+├── docs/                # Project documentation
+│   ├── diagrams/        # Architecture & Flow diagrams
+│   └── results/         # Visual evaluation dashboard (PNG)
+├── scripts/             # Sequential processing scripts (01-04)
 └── zta-dashboard/       # The Full-Stack Web Application
     ├── backend/         # FastAPI, Model logic, and Utilities
     └── frontend/        # React (Vite) Source Code & Components
