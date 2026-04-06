@@ -58,12 +58,25 @@ export default function Settings() {
     try {
       // Mock save for UI config
       await new Promise(resolve => setTimeout(resolve, 1000))
-      alert('System configuration updated successfully.')
+      alert('Global Security Policy & System configuration updated successfully.')
     } catch (err) {
       alert('Failed to save settings.')
     } finally {
       setSaving(false)
     }
+  }
+
+  const toggleAutoRetrain = () => {
+    setConfig(prev => ({ ...prev, auto_train: !prev.auto_train }))
+    alert(`Auto-Retrain ${!config.auto_train ? 'Enabled' : 'Disabled'}`)
+  }
+
+  const handleEditRules = () => {
+    alert('Access Rule Editor: Permission Denied. Site-Bravo is in Static-Policy lockdown.')
+  }
+
+  const handleReviewPermissions = () => {
+    alert('Generating Permission Audit Matrix... Check email for full report.')
   }
 
   return (
@@ -180,8 +193,11 @@ export default function Settings() {
                             <div className="text-[10px] font-black text-white uppercase tracking-tight">Auto-Retrain Model</div>
                             <div className="text-[9px] text-[#8b949e]">Retrain script on new batch</div>
                           </div>
-                          <div className="w-10 h-5 bg-[#30363d] rounded-full relative cursor-pointer">
-                             <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-[#8b949e] rounded-full"></div>
+                          <div 
+                            onClick={toggleAutoRetrain}
+                            className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${config.auto_train ? 'bg-[#3fb950]' : 'bg-[#30363d]'}`}
+                          >
+                             <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${config.auto_train ? 'right-0.5 bg-white' : 'left-0.5 bg-[#8b949e]'}`}></div>
                           </div>
                        </div>
                        <div className="flex items-center justify-between p-3 bg-[#0d1117]/50 rounded-lg border border-[#bc8cff15]">
@@ -213,10 +229,16 @@ export default function Settings() {
                        </p>
                     </div>
                     <div className="flex items-center gap-4">
-                       <button className="flex-1 py-2 bg-[#21262d] border border-[#30363d] rounded text-[10px] font-black text-white uppercase hover:bg-[#30363d] transition-all">
+                       <button 
+                         onClick={handleEditRules}
+                         className="flex-1 py-2 bg-[#21262d] border border-[#30363d] rounded text-[10px] font-black text-white uppercase hover:bg-[#30363d] transition-all"
+                       >
                           Edit Access Rules
                        </button>
-                       <button className="flex-1 py-2 bg-[#21262d] border border-[#30363d] rounded text-[10px] font-black text-white uppercase hover:bg-[#30363d] transition-all">
+                       <button 
+                         onClick={handleReviewPermissions}
+                         className="flex-1 py-2 bg-[#21262d] border border-[#30363d] rounded text-[10px] font-black text-white uppercase hover:bg-[#30363d] transition-all"
+                       >
                           Review Permissions
                        </button>
                     </div>

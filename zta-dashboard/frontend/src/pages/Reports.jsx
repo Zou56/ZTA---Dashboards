@@ -15,15 +15,35 @@ import {
   ChevronRight
 } from 'lucide-react'
 
+import axios from 'axios'
+import { useAuth } from '../App.jsx'
+
+const API = 'http://localhost:8000'
+
 export default function Reports() {
+  const { token } = useAuth()
   const [generating, setGenerating] = useState(false)
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setGenerating(true)
-    setTimeout(() => {
+    try {
+      await axios.post(`${API}/report/generate`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      alert('Security Compliance Report compiled and saved to archives.')
+    } catch {
+      alert('Report Generation Failed')
+    } finally {
       setGenerating(false)
-      alert('Report Generated Successfully')
-    }, 2000)
+    }
+  }
+
+  const handleDownload = (report) => {
+    alert(`Downloading ${report.title}... Resource secured.`)
+  }
+
+  const handleSchedule = () => {
+    alert('Automated Report Scheduler updated for 00:00 UTC Batch.')
   }
 
   const reports = [
@@ -47,7 +67,7 @@ export default function Reports() {
              className="px-4 py-2 bg-[#58a6ff] rounded-lg text-[11px] font-black text-[#0d1117] hover:opacity-90 transition-all shadow-lg shadow-[#58a6ff20] flex items-center gap-2 disabled:opacity-50"
            >
               {generating ? 'COMPILING...' : <Printer className="w-3.5 h-3.5" />}
-              GENERATE NEW REPORT
+              {generating ? 'COMPILING...' : 'GENERATE NEW REPORT'}
            </button>
         </div>
 
@@ -114,7 +134,10 @@ export default function Reports() {
                              <td className="px-5 py-4 text-[10px] text-[#8b949e] font-mono">{r.date}</td>
                              <td className="px-5 py-4 text-[10px] text-[#8b949e] font-mono">{r.size}</td>
                              <td className="px-5 py-4">
-                                <button className="p-2 rounded bg-[#21262d] border border-transparent hover:border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] transition-all">
+                                <button 
+                                  onClick={() => handleDownload(r)}
+                                  className="p-2 rounded bg-[#21262d] border border-transparent hover:border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] transition-all"
+                                >
                                    <Download className="w-3.5 h-3.5" />
                                 </button>
                              </td>
@@ -123,7 +146,10 @@ export default function Reports() {
                     </tbody>
                  </table>
                  <div className="p-4 flex items-center justify-center border-t border-[#30363d]">
-                    <button className="text-[10px] font-black text-[#8b949e] hover:text-[#f0f6fc] uppercase tracking-[0.2em] flex items-center gap-1 transition-colors">
+                    <button 
+                      onClick={() => alert('Viewing all archives... Load failed: Registry locked.')}
+                      className="text-[10px] font-black text-[#8b949e] hover:text-[#f0f6fc] uppercase tracking-[0.2em] flex items-center gap-1 transition-colors"
+                    >
                        VIEW ALL ARCHIVES <ChevronRight className="w-3 h-3" />
                     </button>
                  </div>

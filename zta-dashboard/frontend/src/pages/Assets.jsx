@@ -18,7 +18,8 @@ import {
   Database,
   Lock,
   Smartphone,
-  Laptop
+  Laptop,
+  RefreshCw
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -61,6 +62,25 @@ export default function Assets() {
     return acc
   }, {})
 
+  const handleExport = async () => {
+    window.location.href = `${API}/export?token=${token}`
+  }
+
+  const handleScan = async () => {
+    setLoading(true)
+    try {
+      const res = await axios.post(`${API}/data/scan`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      alert(res.data.message)
+      await fetchAssets()
+    } catch (err) {
+      alert('Scanning Failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Shell>
       <div className="p-6 space-y-6 animate-fade-in">
@@ -71,10 +91,18 @@ export default function Assets() {
               <p className="text-xs text-[#8b949e] font-bold uppercase tracking-widest mt-1">Managed Identites & Endpoint Compliance</p>
            </div>
            <div className="flex gap-2">
-              <button className="px-4 py-2 bg-[#21262d] border border-[#30363d] rounded-lg text-[11px] font-black text-[#f0f6fc] hover:bg-[#30363d] transition-all">
+              <button 
+                onClick={handleExport}
+                className="px-4 py-2 bg-[#21262d] border border-[#30363d] rounded-lg text-[11px] font-black text-[#f0f6fc] hover:bg-[#30363d] transition-all"
+              >
                  EXPORT INVENTORY
               </button>
-              <button className="px-4 py-2 bg-[#58a6ff] rounded-lg text-[11px] font-black text-[#0d1117] hover:opacity-90 transition-all shadow-lg shadow-[#58a6ff20]">
+              <button 
+                onClick={handleScan}
+                disabled={loading}
+                className="px-4 py-2 bg-[#58a6ff] rounded-lg text-[11px] font-black text-[#0d1117] hover:opacity-90 transition-all shadow-lg shadow-[#58a6ff20] flex items-center gap-2"
+              >
+                 {loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                  SCAN NEW ASSET
               </button>
            </div>

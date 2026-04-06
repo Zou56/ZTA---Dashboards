@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   FileSearch,
   LineChart,
-  Boxes
+  Boxes,
+  RefreshCw
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -57,6 +58,17 @@ export default function Analytics() {
     if (lastEvent) fetchMetrics()
   }, [lastEvent])
 
+  const handleAggregate = async () => {
+    setLoading(true)
+    await new Promise(r => setTimeout(r, 2000))
+    try {
+      await fetchMetrics()
+      alert('Global logs aggregated and metrics recalculated.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Shell>
       <div className="p-6 space-y-6 animate-fade-in">
@@ -66,8 +78,13 @@ export default function Analytics() {
               <h1 className="text-xl font-black text-white uppercase tracking-[0.2em]">Security Analytics</h1>
               <p className="text-xs text-[#8b949e] font-bold uppercase tracking-widest mt-1">Machine Learning Performance & Anomaly Trends</p>
            </div>
-           <button className="px-4 py-2 bg-[#21262d] border border-[#30363d] rounded-lg text-[11px] font-black text-[#f0f6fc] hover:bg-[#30363d] transition-all flex items-center gap-2">
-              <Boxes className="w-3.5 h-3.5" /> AGGREGATE LOGS
+           <button 
+             onClick={handleAggregate}
+             disabled={loading}
+             className="px-4 py-2 bg-[#21262d] border border-[#30363d] rounded-lg text-[11px] font-black text-[#f0f6fc] hover:bg-[#30363d] transition-all flex items-center gap-2 disabled:opacity-50"
+           >
+              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Boxes className="w-3.5 h-3.5" />}
+              {loading ? 'AGGREGATING...' : 'AGGREGATE LOGS'}
            </button>
         </div>
 

@@ -19,6 +19,22 @@ import {
 export default function Profile() {
   const { user, logout } = useAuth()
   const [activeSession, setActiveSession] = useState(true)
+  const [showNotice, setShowNotice] = useState(true)
+
+  const handleEditProfile = () => {
+    alert('Profile Editing is restricted to System Administrators. Please contact the SOC Manager.')
+  }
+
+  const handleRevoke = (device) => {
+    if (confirm(`Are you sure you want to revoke access for ${device}?`)) {
+      alert(`Access for ${device} has been revoked. Session terminated.`)
+    }
+  }
+
+  const handleAcknowledge = () => {
+    setShowNotice(false)
+    alert('Quarterly Audit Notice acknowledged.')
+  }
 
   const sessions = [
     { device: 'Work Macbook Pro', OS: 'macOS 14.2', IP: '192.168.1.45', status: 'Active Now', current: true },
@@ -36,12 +52,16 @@ export default function Profile() {
            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#bc8cff10] rounded-full blur-3xl"></div>
 
            <div className="relative group">
-              <div className="w-32 h-32 rounded-full bg-[#161b22] border-2 border-[#30363d] p-1 group-hover:border-[#58a6ff] transition-all">
+              <div className="w-32 h-32 rounded-full bg-[#161b22] border-2 border-[#30363d] p-1 group-hover:border-[#58a6ff] transition-all overflow-hidden">
                 <div className="w-full h-full rounded-full bg-[#30363d] flex items-center justify-center">
-                   <User className="w-16 h-16 text-[#8b949e]" />
+                   <img 
+                     src="/avatars/soc_analyst.png" 
+                     alt="SOC Analyst"
+                     className="w-full h-full object-cover"
+                   />
                 </div>
               </div>
-              <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#3fb950] border-4 border-[#0d1117] flex items-center justify-center" title="Online"></div>
+              <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#3fb950] border-4 border-[#0d1117] flex items-center justify-center shadow-lg" title="Online"></div>
            </div>
 
            <div className="flex-1 text-center md:text-left space-y-2">
@@ -95,20 +115,25 @@ export default function Profile() {
                  </div>
               </div>
               
-              <div className="security-card p-6 bg-gradient-to-br from-[#161b22] to-[#0d1117]">
-                 <div className="flex items-start gap-3 mb-4 text-[#f0883e]">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                    <div>
-                       <h4 className="text-[11px] font-black uppercase tracking-tight text-[#f0f6fc]">Account Audit Notice</h4>
-                       <p className="text-[10px] text-[#8b949e] mt-1 leading-relaxed">
-                          Your account has been flagged for a quarterly security review. Please ensure your 2FA methods are up to date.
-                       </p>
-                    </div>
-                 </div>
-                 <button className="w-full py-2 bg-[#21262d] border border-[#30363d] rounded text-[9px] font-black text-white hover:bg-[#30363d] transition-all uppercase tracking-widest">
-                    Acknowledge Notice
-                 </button>
-              </div>
+              {showNotice && (
+                <div className="security-card p-6 bg-gradient-to-br from-[#161b22] to-[#0d1117]">
+                   <div className="flex items-start gap-3 mb-4 text-[#f0883e]">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                      <div>
+                         <h4 className="text-[11px] font-black uppercase tracking-tight text-[#f0f6fc]">Account Audit Notice</h4>
+                         <p className="text-[10px] text-[#8b949e] mt-1 leading-relaxed">
+                            Your account has been flagged for a quarterly security review. Please ensure your 2FA methods are up to date.
+                         </p>
+                      </div>
+                   </div>
+                   <button 
+                     onClick={handleAcknowledge}
+                     className="w-full py-2 bg-[#21262d] border border-[#30363d] rounded text-[9px] font-black text-white hover:bg-[#30363d] transition-all uppercase tracking-widest"
+                   >
+                      Acknowledge Notice
+                   </button>
+                </div>
+              )}
            </div>
 
            {/* Active Sessions Area */}
@@ -142,7 +167,10 @@ export default function Profile() {
                           <div className="text-right">
                              <div className="text-[10px] font-black text-[#484f58] uppercase tracking-[0.1em]">{s.status}</div>
                              {!s.current && (
-                                <button className="text-[9px] font-black text-[#f85149] hover:text-white uppercase transition-colors mt-2 underline underline-offset-4 decoration-[#f8514940] hover:decoration-[#f85149]">
+                                <button 
+                                  onClick={() => handleRevoke(s.device)}
+                                  className="text-[9px] font-black text-[#f85149] hover:text-white uppercase transition-colors mt-2 underline underline-offset-4 decoration-[#f8514940] hover:decoration-[#f85149]"
+                                >
                                    REVOKE ACCESS
                                 </button>
                              )}

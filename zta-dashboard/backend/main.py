@@ -481,6 +481,46 @@ async def get_metrics(token: str = Depends(verify_token)):
         "total_rows":  int(len(df)),
     }
 
+@app.post("/data/scan", tags=["Data"])
+async def scan_new_asset(token: str = Depends(verify_token)):
+    """Simulate scanning for a new asset and adding it to the dataset."""
+    if state["df"] is None:
+        raise HTTPException(status_code=400, detail="Upload a dataset first.")
+    
+    df = state["df"]
+    new_user = f"USER_{random.randint(500, 999)}"
+    new_row = {
+        "user_id": new_user,
+        "timestamp": datetime.now(),
+        "device_type": random.choice(["Laptop", "Mobile", "Workstation", "IoT"]),
+        "location": random.choice(["Singapore", "Jakarta", "Tokyo", "London"]),
+        "activity_count": random.randint(10, 200),
+        "session_duration": random.randint(5, 120),
+        "login_status": "success",
+        "access_resource": random.choice(["Email", "Cloud_Drive", "Admin_Panel"]),
+        "is_anomaly": 0
+    }
+    # Fill defaults for ML cols
+    for col in df.columns:
+        if col not in new_row:
+            new_row[col] = 0
+            
+    state["df"] = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    await manager.broadcast({"type": "ASSET_SCANNED", "user_id": new_user})
+    return {"success": True, "message": f"New asset discovered: {new_user}", "asset": new_user}
+
+@app.post("/data/clean", tags=["Data"])
+async def clean_dataset(token: str = Depends(verify_token)):
+    """Simulate dataset cleaning and optimization."""
+    time.sleep(1) # Simulate work
+    return {"success": True, "message": "Dataset optimization complete. Redundant logs pruned."}
+
+@app.post("/report/generate", tags=["Reports"])
+async def generate_report(token: str = Depends(verify_token)):
+    """Simulate backend report compilation."""
+    time.sleep(2) # Simulate work
+    return {"success": True, "message": "Compliance report compiled and ready for retrieval."}
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  LOGS
 # ══════════════════════════════════════════════════════════════════════════════
