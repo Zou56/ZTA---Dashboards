@@ -21,16 +21,17 @@ import numpy as np
 import pandas as pd
 import random
 import string
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 import io
 
-from utils import load_and_process, prepare_features, zta_decision, get_summary_stats
+from utils import load_and_process, process_dataframe, prepare_features, zta_decision, get_summary_stats
 from model import detector
 from bot_service import telegram_bot
+from ingest_data import standardize_and_merge
 
 # ─── Application setup ────────────────────────────────────────────────────────
 app = FastAPI(
@@ -41,11 +42,42 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("ALLOWED_ORIGINS", "*").split(","),
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─── Connection Manager for Real-time Updates ─────────────────────────────────
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception:
+                pass
+
+manager = ConnectionManager()
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text() # Keep alive
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 # ─── Simple admin auth ────────────────────────────────────────────────────────
 ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
@@ -115,6 +147,49 @@ class BotConfig(BaseModel):
     chat_id: str
     enabled: bool
 
+class ActionRequest(BaseModel):
+    user_id: str
+    timestamp: str
+    action: str  # 'block' or 'dismiss'
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  ACTIONS
+# ══════════════════════════════════════════════════════════════════════════════
+@app.post("/action", tags=["Data"])
+async def perform_action(body: ActionRequest, token: str = Depends(verify_token)):
+    """Perform a manual action (Block/Dismiss) on a specific record."""
+    if state["df"] is None:
+        raise HTTPException(status_code=400, detail="No dataset loaded.")
+
+    df = state["df"]
+    # Find the row. Timestamp in state["df"] is datetime, but body is string
+    try:
+        ts = pd.to_datetime(body.timestamp)
+        idx = df[(df["user_id"] == body.user_id) & (df["timestamp"] == ts)].index
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid timestamp format")
+
+    if idx.empty:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    # Update the record in memory
+    if body.action == "block":
+        state["df"].loc[idx, "zta_decision"] = "DENY"
+        # If predictions exist, update them too
+        if state["predictions"] is not None:
+             state["predictions"].loc[idx, "zta_decision"] = "DENY"
+        msg = f"User {body.user_id} has been BLOCKED."
+    elif body.action == "dismiss":
+        state["df"].loc[idx, "zta_decision"] = "ALLOW"
+        if state["predictions"] is not None:
+             state["predictions"].loc[idx, "zta_decision"] = "ALLOW"
+        msg = f"Anomaly for {body.user_id} has been DISMISSED."
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported action")
+
+    await manager.broadcast({"type": "ACTION_PERFORMED", "user_id": body.user_id, "action": body.action})
+    return {"success": True, "message": msg}
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  AUTH
 # ══════════════════════════════════════════════════════════════════════════════
@@ -166,6 +241,10 @@ async def upload_dataset(
 
     stats = get_summary_stats(df)
     log_request("POST", "/upload", 200, time.time() - t0)
+    
+    # Broadcast update
+    await manager.broadcast({"type": "DATA_UPDATED", "rows": stats["total_rows"]})
+    
     return {
         "success":  True,
         "filename": file.filename,
@@ -174,6 +253,42 @@ async def upload_dataset(
         "columns":  stats["columns"],
         "message":  f"Dataset uploaded — {stats['total_rows']} rows processed.",
     }
+
+@app.post("/data/integrate", tags=["Data"])
+async def integrate_intelligence(token: str = Depends(verify_token)):
+    """Run the Intelligence Ingestion Pipeline (Network + Behavior + Social)."""
+    t0 = time.time()
+    try:
+        combined_df = standardize_and_merge()
+        # Process through utils to ensure consistency
+        df_processed = process_dataframe(combined_df)
+        
+        X_scaled, y, scaler, features = prepare_features(df_processed)
+        
+        state["df"]       = df_processed
+        state["X_scaled"] = X_scaled
+        state["y"]        = y
+        state["scaler"]   = scaler
+        state["features"] = features
+        state["predictions"] = None
+        state["metrics"]     = None
+        detector.is_trained  = False
+        
+        stats = get_summary_stats(df_processed)
+        log_request("POST", "/data/integrate", 200, time.time() - t0)
+        
+        # Broadcast update
+        await manager.broadcast({"type": "DATA_INTEGRATED", "rows": stats["total_rows"]})
+        
+        return {
+            "success": True,
+            "message": "Intelligence Integration Complete - Unified ZTA Dataset Generated.",
+            "rows": stats["total_rows"],
+            "users": stats["total_users"]
+        }
+    except Exception as e:
+        log_request("POST", "/data/integrate", 500, time.time() - t0)
+        raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  DATA
@@ -231,6 +346,10 @@ async def train_model(token: str = Depends(verify_token)):
 
     summary = detector.train(state["X_scaled"])
     log_request("POST", "/train", 200, time.time() - t0)
+    
+    # Broadcast update
+    await manager.broadcast({"type": "MODEL_TRAINED", "accuracy": summary.get("accuracy")})
+    
     return {
         "success": True,
         "message": "Isolation Forest trained successfully.",
@@ -272,8 +391,8 @@ async def get_predictions(
             background_tasks.add_task(telegram_bot.send_alert, alert_row)
 
     output_cols = [
-        "user_id", "timestamp", "ip_address", "location",
-        "device_type", "login_status", "session_duration",
+        "user_id", "timestamp", "network_traffic", "location",
+        "device_id", "activity_type", "session_duration",
         "access_resource", "activity_count", "login_hour",
         "is_anomaly", "anomaly_score", "predicted_anomaly", "zta_decision",
     ]
@@ -281,6 +400,10 @@ async def get_predictions(
     result_df = df[out_cols]
 
     log_request("GET", "/predict", 200, time.time() - t0)
+    
+    # Broadcast update
+    await manager.broadcast({"type": "PREDICTIONS_READY", "total": len(result_df)})
+    
     return {
         "total":       len(result_df),
         "predictions": result_df.replace({np.nan: None}).to_dict(orient="records"),
@@ -332,6 +455,9 @@ async def simulate_attack(token: str = Depends(verify_token)):
     X_scaled, y, scaler, features = prepare_features(new_df)
     state["X_scaled"] = X_scaled
     state["y"] = y
+    
+    # Broadcast update
+    await manager.broadcast({"type": "ATTACK_SIMULATED", "user_id": malicious_user})
     
     return {"message": f"Malicious record injected for user {malicious_user}. Retrain and re-run detection.", "user_id": malicious_user}
 

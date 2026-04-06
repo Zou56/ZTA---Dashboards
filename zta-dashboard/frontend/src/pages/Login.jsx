@@ -5,7 +5,7 @@ import { useAuth } from '../App.jsx'
 import { Shield, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API = 'http://localhost:8000'
 
 export default function Login() {
   const { t } = useTranslation()

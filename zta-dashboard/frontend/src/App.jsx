@@ -3,6 +3,15 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './i18n.js'
 import Login     from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import Assets    from './pages/Assets.jsx'
+import Analytics from './pages/Analytics.jsx'
+import Datasets  from './pages/Datasets.jsx'
+import Reports   from './pages/Reports.jsx'
+import Settings  from './pages/Settings.jsx'
+import Profile   from './pages/Profile.jsx'
+import { RealtimeProvider } from './context/RealtimeContext.jsx'
+
+// ─── Auth context ─────────────────────────────────────────────────────────────
 
 // ─── Auth context ─────────────────────────────────────────────────────────────
 export const AuthContext = createContext(null)
@@ -26,13 +35,21 @@ function PrivateRoute({ children }) {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/"      element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="*"      element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <RealtimeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/"      element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/assets"    element={<PrivateRoute><Assets /></PrivateRoute>} />
+            <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+            <Route path="/datasets"  element={<PrivateRoute><Datasets /></PrivateRoute>} />
+            <Route path="/reports"   element={<PrivateRoute><Reports /></PrivateRoute>} />
+            <Route path="/settings"  element={<PrivateRoute><Settings /></PrivateRoute>} />
+            <Route path="/profile"   element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path="*"      element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </RealtimeProvider>
     </AuthProvider>
   )
 }

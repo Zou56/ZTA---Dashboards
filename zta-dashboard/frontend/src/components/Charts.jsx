@@ -1,134 +1,173 @@
+import React from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
-  PieChart, Pie, Legend,
-  LineChart, Line, ReferenceLine,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, LineChart, Line, AreaChart, Area,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts'
-import { useTranslation } from 'react-i18next'
-import { BarChart3 } from 'lucide-react'
 
-const CYBER = {
-  bg:     '#0a0e1a',
-  card:   '#0d1220',
-  border: '#1e2d4a',
-  muted:  '#8b949e',
-  teal:   '#22d3ee',
-  violet: '#a78bfa',
-  rose:   '#f43f5e',
-  amber:  '#fbbf24',
-  green:  '#34d399',
-  blue:   '#60a5fa',
-}
+const COLORS = ['#58a6ff', '#3fb950', '#f85149', '#f0883e', '#bc8cff', '#d29922']
 
-const TooltipStyle = {
-  contentStyle: { background: 'rgba(13, 18, 32, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2d4a', borderRadius: 12, fontSize: 12, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' },
-  labelStyle:   { color: '#e2e8f0', fontWeight: 'bold', marginBottom: 4 },
-  itemStyle:    { color: '#94a3b8' },
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#161b22] border border-[#30363d] p-3 rounded-lg shadow-xl text-xs">
+        <p className="text-[#8b949e] font-bold mb-1 uppercase tracking-widest">{label}</p>
+        {payload.map((p, idx) => (
+          <p key={idx} className="text-[#f0f6fc] flex justify-between gap-4">
+            <span style={{ color: p.color || p.fill }}>{p.name}:</span>
+            <span className="font-mono font-bold">{p.value.toLocaleString()}</span>
+          </p>
+        ))}
+      </div>
+    )
+  }
+  return null
 }
 
 export function ZTABarChart({ data }) {
-  const { t } = useTranslation()
-  if (!data) return <EmptyChart t={t} />
-  const chartData = [
-    { name: t('dashboard.charts.allow'),  value: data.ALLOW  ?? 0, color: CYBER.green  },
-    { name: t('dashboard.charts.verify'), value: data.VERIFY ?? 0, color: CYBER.amber  },
-    { name: t('dashboard.charts.deny'),   value: data.DENY   ?? 0, color: CYBER.rose   },
-  ]
+  if (!data) return null
+  const plotData = Object.entries(data).map(([name, value]) => ({ name, value }))
+  
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={chartData} barSize={35}>
-        <CartesianGrid strokeDasharray="3 3" stroke={CYBER.border} vertical={false} opacity={0.5} />
-        <XAxis dataKey="name" tick={{ fill: CYBER.muted, fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} dy={10} />
-        <YAxis tick={{ fill: CYBER.muted, fontSize: 10 }} axisLine={false} tickLine={false} dx={-10} />
-        <Tooltip {...TooltipStyle} cursor={{fill: 'rgba(34, 211, 238, 0.05)'}} />
-        <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-          {chartData.map((d, i) => (
-            <Cell key={i} fill={d.color} fillOpacity={0.9} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="h-[220px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={plotData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#21262d" vertical={false} />
+          <XAxis 
+            dataKey="name" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#8b949e', fontSize: 10, fontWeight: 700 }}
+          />
+          <YAxis 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#8b949e', fontSize: 10, fontWeight: 700 }}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: '#161b22' }} />
+          <Bar dataKey="value" name="Frequency" radius={[4, 4, 0, 0]}>
+            {plotData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
 
-export function AnomalyPieChart({ normal, anomaly }) {
-  const { t } = useTranslation()
-  if (normal == null && anomaly == null) return <EmptyChart t={t} />
+export function AnomalyPieChart({ normal = 0, anomaly = 0 }) {
   const data = [
-    { name: t('charts_cmp.normal'),  value: normal  ?? 0, color: CYBER.green  },
-    { name: t('charts_cmp.anomaly'), value: anomaly ?? 0, color: CYBER.rose   },
+    { name: 'Normal Traffic', value: normal || 0, color: '#3fb950' },
+    { name: 'Detected Anomalies', value: anomaly || 0, color: '#f85149' },
   ]
-  const total = (normal ?? 0) + (anomaly ?? 0)
-  const pct   = total > 0 ? Math.round((anomaly / total) * 100) : 0
-
+  
   return (
-    <div className="relative">
-      <ResponsiveContainer width="100%" height={220}>
+    <div className="h-[220px] w-full relative">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie data={data} cx="50%" cy="50%" innerRadius={65} outerRadius={90}
-               paddingAngle={4} dataKey="value" strokeWidth={0} cornerRadius={4}>
-            {data.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.9} />)}
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={80}
+            paddingAngle={4}
+            dataKey="value"
+            stroke="none"
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
           </Pie>
-          <Tooltip {...TooltipStyle} formatter={(v) => [v.toLocaleString(), '']} />
-          <Legend iconType="circle" iconSize={8} wrapperStyle={{ paddingTop: '10px' }}
-                  formatter={(v, e) => <span style={{ color: CYBER.muted, fontSize: 11, fontWeight: 500 }}>{v}: <span style={{color: '#e2e8f0'}}>{e.payload.value.toLocaleString()}</span></span>} />
+          <Tooltip content={<CustomTooltip />} />
         </PieChart>
       </ResponsiveContainer>
-      <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none flex flex-col items-center justify-center">
-        <div className="text-3xl font-black text-cyber-rose drop-shadow-lg leading-none">{pct}%</div>
-        <div className="text-[10px] uppercase tracking-widest text-cyber-muted mt-1 font-bold">{t('charts_cmp.anomaly')}</div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+         <span className="text-xl font-black text-white">{((anomaly / (normal + anomaly || 1)) * 100).toFixed(1)}%</span>
+         <span className="text-[10px] text-[#8b949e] font-bold uppercase">Exposure</span>
       </div>
     </div>
   )
 }
 
 export function ScoreLineChart({ predictions = [] }) {
-  const { t } = useTranslation()
-  if (!predictions.length) return <EmptyChart t={t} />
+  if (predictions.length === 0) return (
+     <div className="h-[220px] flex items-center justify-center text-[#484f58] text-xs font-bold uppercase tracking-widest italic">
+        Awaiting Detection Run
+     </div>
+  )
 
-  const step   = Math.max(1, Math.floor(predictions.length / 200))
-  const sample = predictions.filter((_, i) => i % step === 0).map((r, i) => ({
-    idx:   i,
-    score: parseFloat(r.anomaly_score ?? 0),
-    label: r.zta_decision,
+  const data = predictions.slice(-50).map((p, i) => ({ 
+    index: i, 
+    score: p.anomaly_score,
+    threshold: 0.3
   }))
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <LineChart data={sample} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={CYBER.border} opacity={0.5} />
-        <XAxis dataKey="idx" hide />
-        <YAxis domain={[0, 1]} tick={{ fill: CYBER.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
-        <Tooltip {...TooltipStyle}
-          formatter={(v, n, p) => [`${v.toFixed(3)} (${p.payload.label})`, t('charts_cmp.score')]} />
-        <ReferenceLine y={0.70} stroke={CYBER.rose}   strokeDasharray="4 2" label={{ value: 'DENY (0.7)',   fill: CYBER.rose,   fontSize: 10, position: 'insideTopLeft' }} />
-        <ReferenceLine y={0.50} stroke={CYBER.amber}  strokeDasharray="4 2" label={{ value: 'VERIFY (0.5)', fill: CYBER.amber,  fontSize: 10, position: 'insideTopLeft' }} />
-        <Line type="monotone" dataKey="score" stroke={CYBER.teal} strokeWidth={2}
-              dot={false} activeDot={{ r: 4, fill: CYBER.teal, strokeWidth: 0, stroke: '#fff' }} />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="h-[220px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#58a6ff" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#58a6ff" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#21262d" vertical={false} />
+          <XAxis 
+            dataKey="index" 
+            hide
+          />
+          <YAxis 
+            domain={[0, 1]} 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#8b949e', fontSize: 10, fontWeight: 700 }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Area 
+            type="monotone" 
+            dataKey="score" 
+            stroke="#58a6ff" 
+            fillOpacity={1} 
+            fill="url(#scoreGradient)" 
+            strokeWidth={2}
+            name="Anomaly Score" 
+          />
+          <Line 
+            type="step" 
+            dataKey="threshold" 
+            stroke="#f85149" 
+            strokeDasharray="5 5" 
+            dot={false}
+            name="ZTA Threshold"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
 
 export function ConfusionMatrix({ matrix }) {
-  const { t } = useTranslation()
-  if (!matrix) return <EmptyChart t={t} />
-  const [[tn, fp], [fn, tp]] = matrix
-  const total = tn + fp + fn + tp
+  if (!matrix) return <div className="h-[150px] flex items-center justify-center text-[#484f58] text-xs font-bold uppercase tracking-widest italic">Data Unavailable</div>
+  
+  const labels = ['Normal', 'Anomaly']
   const cells = [
-    { label: 'TN', value: tn, desc: t('charts_cmp.tn_desc'),  color: CYBER.green  },
-    { label: 'FP', value: fp, desc: t('charts_cmp.fp_desc'),  color: CYBER.amber  },
-    { label: 'FN', value: fn, desc: t('charts_cmp.fn_desc'),  color: CYBER.violet },
-    { label: 'TP', value: tp, desc: t('charts_cmp.tp_desc'),  color: CYBER.teal   },
+    { r: 0, c: 0, v: matrix[0][0], label: 'TN' },
+    { r: 0, c: 1, v: matrix[0][1], label: 'FP' },
+    { r: 1, c: 0, v: matrix[1][0], label: 'FN' },
+    { r: 1, c: 1, v: matrix[1][1], label: 'TP' },
   ]
+
   return (
-    <div className="grid grid-cols-2 gap-3 p-1">
-      {cells.map(c => (
-        <div key={c.label} className="rounded-xl p-3 text-center transition-transform hover:-translate-y-1 shadow-sm" style={{ background: `${c.color}10`, border: `1px solid ${c.color}25` }}>
-          <div className="text-2xl font-black" style={{ color: c.color }}>{c.value.toLocaleString()}</div>
-          <div className="text-[11px] font-black mt-1 tracking-widest" style={{ color: c.color }}>{c.label}</div>
-          <div className="text-[10px] text-cyber-muted tracking-wide mt-0.5">{c.desc}</div>
-          <div className="text-[10px] text-cyber-muted font-mono mt-1 opacity-80">{total > 0 ? ((c.value / total) * 100).toFixed(1) : 0}%</div>
+    <div className="grid grid-cols-2 gap-2 mt-2">
+      {cells.map((cell, i) => (
+        <div key={i} className="bg-[#0d1117] border border-[#30363d] rounded-lg p-3 flex flex-col items-center justify-center transition-all hover:bg-[#161b22]">
+          <div className="text-[10px] text-[#8b949e] font-bold uppercase tracking-tighter mb-1">{cell.label}</div>
+          <div className="text-lg font-black text-[#f0f6fc]">{cell.v.toLocaleString()}</div>
+          <div className="text-[9px] text-[#484f58] uppercase font-medium">{labels[cell.r]} / {labels[cell.c]}</div>
         </div>
       ))}
     </div>
@@ -136,32 +175,31 @@ export function ConfusionMatrix({ matrix }) {
 }
 
 export function MetricsRadar({ metrics }) {
-  const { t } = useTranslation()
-  if (!metrics) return <EmptyChart t={t} />
+  if (!metrics) return null
   const data = [
-    { metric: t('charts_cmp.accuracy'),  value: Math.round((metrics.accuracy  ?? 0) * 100) },
-    { metric: t('charts_cmp.precision'), value: Math.round((metrics.precision ?? 0) * 100) },
-    { metric: t('charts_cmp.recall'),    value: Math.round((metrics.recall    ?? 0) * 100) },
-    { metric: t('charts_cmp.f1_score'),  value: Math.round((metrics.f1_score  ?? 0) * 100) },
-    { metric: t('charts_cmp.roc_auc'),   value: Math.round((metrics.roc_auc   ?? 0) * 100) },
+    { subject: 'Accuracy',  A: metrics.accuracy  * 100 },
+    { subject: 'Precision', A: metrics.precision * 100 },
+    { subject: 'Recall',    A: metrics.recall    * 100 },
+    { subject: 'F1 Score',  A: metrics.f1_score  * 100 },
+    { subject: 'ROC AUC',   A: metrics.roc_auc   * 100 },
   ]
-  return (
-    <ResponsiveContainer width="100%" height={230}>
-      <RadarChart data={data} cx="50%" cy="50%" outerRadius={70}>
-        <PolarGrid stroke={CYBER.border} strokeOpacity={0.6} />
-        <PolarAngleAxis dataKey="metric" tick={{ fill: CYBER.muted, fontSize: 10, fontWeight: 600 }} />
-        <Radar dataKey="value" stroke={CYBER.violet} fill={CYBER.violet} fillOpacity={0.25} strokeWidth={2} />
-        <Tooltip {...TooltipStyle} formatter={(v) => [`${v}%`, '']} />
-      </RadarChart>
-    </ResponsiveContainer>
-  )
-}
 
-function EmptyChart({ t }) {
   return (
-    <div className="flex flex-col items-center justify-center h-48 text-cyber-muted gap-3">
-      <BarChart3 className="w-10 h-10 opacity-30" />
-      <span className="text-sm font-medium">{t ? t('charts_cmp.empty') : 'Run detection to populate charts'}</span>
+    <div className="h-[250px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+          <PolarGrid stroke="#30363d" />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: '#8b949e', fontSize: 10, fontWeight: 700 }} />
+          <Radar
+            name="Performance"
+            dataKey="A"
+            stroke="#58a6ff"
+            fill="#58a6ff"
+            fillOpacity={0.3}
+          />
+          <Tooltip content={<CustomTooltip />} />
+        </RadarChart>
+      </ResponsiveContainer>
     </div>
   )
 }

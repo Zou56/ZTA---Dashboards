@@ -87,12 +87,18 @@
     },
     "toasts": {
       "upload_first": "Upload a dataset first.",
+      "upload_failed": "Upload failed",
       "train_first": "Train the model first.",
       "run_detect_first": "Run detection first.",
       "export_success": "CSV exported successfully",
       "export_failed": "Export failed",
       "bot_updated": "Bot configuration updated",
-      "bot_failed": "Failed to update bot config"
+      "bot_failed": "Failed to update bot config",
+      "train_success": "Model trained on {{num}} samples with {{features}} features",
+      "train_failed": "Training failed",
+      "detect_success": "Detection complete — {{num}} anomalies found",
+      "detect_failed": "Detection failed",
+      "simulate_failed": "Failed to simulate attack"
     }
   },
   "table": {

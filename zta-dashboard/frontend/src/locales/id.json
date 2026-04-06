@@ -87,12 +87,18 @@
     },
     "toasts": {
       "upload_first": "Unggah dataset terlebih dahulu.",
+      "upload_failed": "Gagal mengunggah",
       "train_first": "Latih model terlebih dahulu.",
       "run_detect_first": "Jalankan deteksi terlebih dahulu.",
       "export_success": "CSV berhasil diekspor",
       "export_failed": "Gagal mengekspor",
       "bot_updated": "Konfigurasi bot diperbarui",
-      "bot_failed": "Gagal memperbarui konfigurasi bot"
+      "bot_failed": "Gagal memperbarui konfigurasi bot",
+      "train_success": "Model dilatih pada {{num}} sampel dengan {{features}} fitur",
+      "train_failed": "Gagal melatih model",
+      "detect_success": "Deteksi selesai — {{num}} anomali ditemukan",
+      "detect_failed": "Gagal mendeteksi anomali",
+      "simulate_failed": "Gagal mensimulasikan serangan"
     }
   },
   "table": {

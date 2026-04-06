@@ -36,39 +36,41 @@ FEATURE_COLS = [
 
 
 def load_and_process(file_bytes: bytes) -> pd.DataFrame:
-    """
-    Load CSV from bytes, parse timestamps, and engineer all features.
-    Returns a fully-prepared DataFrame ready for model training.
-    """
+    """Load CSV from bytes and preprocess."""
     df = pd.read_csv(io.BytesIO(file_bytes), parse_dates=["timestamp"])
+    return process_dataframe(df)
 
-    # ── Compatibility Mapping for Advanced Dataset ───────────────────────────
+
+def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Standard preprocessing for any ZTA dataframe (upload or simulated).
+    Ensures flags are derived and categorical features are encoded.
+    """
+    df = df.copy()
+
+    # ── Compatibility Mapping ────────────────────────────────────────────────
     if "device_id" in df.columns and "device_type" not in df.columns:
         df["device_type"] = df["device_id"]
     if "resource_accessed" in df.columns and "access_resource" not in df.columns:
         df["access_resource"] = df["resource_accessed"]
+    if "activity_type" in df.columns and "access_resource" not in df.columns:
+        # For simulated data
+        df["access_resource"] = df["activity_type"]
+
     if "activity_count" not in df.columns:
-        # Mock activity limit if missing based on anomaly flag
-        if "high_activity_flag" in df.columns:
-            df["activity_count"] = df["high_activity_flag"].apply(lambda x: 600 if x == 1 else 45)
-        else:
-            df["activity_count"] = 45
-    if "login_status" not in df.columns:
-        df["login_status"] = "success"
+        df["activity_count"] = 45
 
-    # ── Ensure required flag columns exist ───────────────────────────────────
-    required_flags = FLAG_COLS
-    missing = [c for c in required_flags if c not in df.columns]
-
-    if missing:
-        # Dataset doesn't have flags yet — derive them
+    # ── Derive flags if missing ──────────────────────────────────────────────
+    if not all(c in df.columns for c in FLAG_COLS):
         df = _derive_flags(df)
 
     # ── login_hour ────────────────────────────────────────────────────────────
-    df["login_hour"] = df["timestamp"].dt.hour
+    if "timestamp" in df.columns:
+        df["login_hour"] = pd.to_datetime(df["timestamp"]).dt.hour
 
     # ── Ground truth label ────────────────────────────────────────────────────
-    df["is_anomaly"] = df[FLAG_COLS].any(axis=1).astype(int)
+    if "is_anomaly" not in df.columns:
+        df["is_anomaly"] = df[FLAG_COLS].any(axis=1).astype(int)
 
     # ── Label encode categoricals ────────────────────────────────────────────
     le_device   = LabelEncoder()
