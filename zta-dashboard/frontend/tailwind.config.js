@@ -5,8 +5,8 @@ export default {
     extend: {
       colors: {
         cyber: {
-          bg:      '#0a0e1a',
-          card:    '#0d1220',
+          bg:      '#050814',
+          card:    '#090d19',
           border:  '#1e2d4a',
           muted:   '#8b949e',
           teal:    '#22d3ee',
@@ -22,13 +22,13 @@ export default {
         mono: ['JetBrains Mono', 'monospace'],
       },
       animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'fade-in':    'fadeIn 0.4s ease-out',
-        'slide-up':   'slideUp 0.3s ease-out',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in':    'fadeIn 0.5s ease-out',
+        'slide-up':   'slideUp 0.4s ease-out',
       },
       keyframes: {
         fadeIn:  { from: { opacity: 0 }, to: { opacity: 1 } },
-        slideUp: { from: { opacity: 0, transform: 'translateY(12px)' },
+        slideUp: { from: { opacity: 0, transform: 'translateY(15px)' },
                    to:   { opacity: 1, transform: 'translateY(0)' } },
       },
     },

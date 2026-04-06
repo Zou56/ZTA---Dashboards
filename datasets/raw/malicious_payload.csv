@@ -1,0 +1,4 @@
+user_id,timestamp,device_id,location,user_role,activity_type,resource_accessed,session_duration,is_anomaly,anomaly_type,login_hour,device_change_flag,location_change_flag,midnight_login_flag,short_session_flag,high_activity_flag,risk_score
+HACKER_001,2024-02-15 03:15:00,Kali-Linux-VM,Pyongyang,guest,download,admin_panel,2,1,compound,3,1,1,1,1,1,1.0
+HACKER_002,2024-02-15 03:18:00,Unknown-Terminal,Moscow,guest,upload,database,1,1,compound,3,1,1,1,1,1,1.0
+HACKER_003,2024-02-15 03:22:00,Tor-Browser_iPhone,Beijing,guest,download,server_keys,4,1,compound,3,1,1,1,1,1,1.0

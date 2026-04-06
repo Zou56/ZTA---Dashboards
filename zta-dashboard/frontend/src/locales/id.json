@@ -1,0 +1,135 @@
+{
+  "login": {
+    "title": "Dasbor ZTA",
+    "subtitle": "DETEKSI ANOMALI ZERO TRUST",
+    "failed": "Gagal masuk. Silakan coba lagi.",
+    "username": "NAMA PENGGUNA",
+    "username_placeholder": "admin",
+    "password": "KATA SANDI",
+    "password_placeholder": "••••••••",
+    "authenticating": "Mengautentikasi...",
+    "signin": "Masuk",
+    "default_hint": "Bawaan:",
+    "footer": "Platform Penelitian · Analitik Big Data + Arsitektur Zero Trust"
+  },
+  "navbar": {
+    "brand": "Dasbor ZTA",
+    "anomaly_detection": "· Deteksi Anomali",
+    "status_dataset": "Dataset",
+    "status_model": "Model",
+    "status_predictions": "Prediksi",
+    "logout": "Keluar"
+  },
+  "dashboard": {
+    "title": "Dasbor Deteksi Anomali",
+    "subtitle": "Analitik Big Data · Arsitektur Zero Trust · Isolation Forest",
+    "bot_on": "Bot Keamanan ON",
+    "bot_off": "Bot Keamanan OFF",
+    "export_csv": "Ekspor CSV",
+    "upload": {
+      "title": "Unggah Dataset",
+      "desc": "Berkas CSV (dataset_fixed.csv)",
+      "processing": "Memproses…"
+    },
+    "train": {
+      "title": "Latih Model",
+      "desc": "Isolation Forest · contamination=0.15",
+      "processing": "Melatih…"
+    },
+    "detect": {
+      "title": "Jalankan Deteksi",
+      "desc": "Prediksi + Keputusan Zero Trust",
+      "processing": "Mendeteksi anomali…"
+    },
+    "simulate": {
+      "title": "Simulasikan Serangan",
+      "desc": "Suntikkan sesi berbahaya",
+      "processing": "Menyuntikkan muatan…"
+    },
+    "metrics": {
+      "total_users": "Total Pengguna",
+      "unique_ids": "ID pengguna unik",
+      "anomalies_found": "Anomali Ditemukan",
+      "of_sessions": "dari sesi",
+      "run_detection": "Jalankan deteksi",
+      "accuracy": "Akurasi",
+      "iso_forest": "Isolation Forest",
+      "f1_score": "F1-Score",
+      "auc": "AUC:",
+      "model_not_run": "Model belum dijalankan"
+    },
+    "charts": {
+      "zta_distribution": "Distribusi Keputusan Zero Trust",
+      "anomaly_vs_normal": "Sesi Anomali vs Normal",
+      "anomaly_score_time": "Skor Anomali Sepanjang Waktu",
+      "confusion_matrix": "Matriks Konfusi",
+      "performance_radar": "Radar Performa Model",
+      "precision": "Presisi",
+      "recall": "Recall",
+      "f1_score": "F1-Score",
+      "roc_auc": "ROC AUC",
+      "allow": "IZINKAN",
+      "verify": "VERIFIKASI",
+      "deny": "TOLAK"
+    },
+    "bot_modal": {
+      "title": "Bot Keamanan AI",
+      "subtitle": "Peringatan & Analisis Waktu Nyata Telegram",
+      "token_label": "Token Bot (@BotFather)",
+      "token_placeholder": "0000000000:ABC...",
+      "chatid_label": "ID Obrolan Tujuan (@userinfobot)",
+      "chatid_placeholder": "123456789",
+      "rt_notif": "Notifikasi Waktu Nyata",
+      "rt_notif_desc": "Kirim peringatan yang dianalisis AI untuk kejadian risiko tinggi",
+      "cancel": "Batal",
+      "save": "Simpan Konfigurasi",
+      "note": "Catatan: Logika peringatan Telegram menggunakan simulasi analisis AI untuk sesi anomali."
+    },
+    "toasts": {
+      "upload_first": "Unggah dataset terlebih dahulu.",
+      "train_first": "Latih model terlebih dahulu.",
+      "run_detect_first": "Jalankan deteksi terlebih dahulu.",
+      "export_success": "CSV berhasil diekspor",
+      "export_failed": "Gagal mengekspor",
+      "bot_updated": "Konfigurasi bot diperbarui",
+      "bot_failed": "Gagal memperbarui konfigurasi bot"
+    }
+  },
+  "table": {
+    "title": "Log Aktivitas",
+    "showing": "Menampilkan {{num}} data",
+    "search": "Cari pengguna atau lokasi...",
+    "all_decisions": "Semua Keputusan",
+    "loading": "Memuat data...",
+    "no_data": "Tidak ada data. Unggah dataset untuk memulai.",
+    "page": "Halaman {{page}} dari {{pages}}",
+    "cols": {
+      "user_id": "ID Pengguna",
+      "timestamp": "Stempel Waktu",
+      "location": "Lokasi",
+      "device": "Perangkat",
+      "login": "Login",
+      "activity": "Aktivitas",
+      "score": "Skor",
+      "prediction": "Prediksi",
+      "zta": "Keputusan ZTA"
+    },
+    "anomaly": "Anomali",
+    "normal": "Normal"
+  },
+  "charts_cmp": {
+    "normal": "Normal",
+    "anomaly": "Anomali",
+    "score": "Skor",
+    "tn_desc": "True Negative",
+    "fp_desc": "False Positive",
+    "fn_desc": "False Negative",
+    "tp_desc": "True Positive",
+    "empty": "Jalankan deteksi untuk mengisi grafik",
+    "accuracy": "Akurasi",
+    "precision": "Presisi",
+    "recall": "Recall",
+    "f1_score": "F1-Score",
+    "roc_auc": "ROC AUC"
+  }
+}

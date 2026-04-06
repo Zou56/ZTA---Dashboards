@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../App.jsx'
 import { Shield, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
-const API = 'http://localhost:8000'
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 export default function Login() {
+  const { t } = useTranslation()
   const { login }        = useAuth()
   const navigate         = useNavigate()
   const [form, setForm]  = useState({ username: '', password: '' })
@@ -23,7 +25,7 @@ export default function Login() {
       login(res.data.token, res.data.username)
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please try again.')
+      setError(err.response?.data?.detail || t('login.failed'))
     } finally {
       setLoading(false)
     }
@@ -41,8 +43,8 @@ export default function Login() {
         style={{ backgroundImage: 'linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(to right, #22d3ee 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
       {/* Login card */}
-      <div className="relative w-full max-w-sm mx-4 animate-fade-in">
-        <div className="bg-cyber-card border border-cyber-border rounded-2xl p-8 shadow-2xl"
+      <div className="relative w-full max-w-sm mx-4 animate-fade-in backdrop-blur-sm">
+        <div className="bg-cyber-card/90 border border-cyber-border rounded-2xl p-8 shadow-2xl"
              style={{ boxShadow: '0 0 60px rgba(34,211,238,0.07), 0 25px 60px rgba(0,0,0,0.6)' }}>
 
           {/* Logo */}
@@ -50,8 +52,8 @@ export default function Login() {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyber-teal/20 to-cyber-violet/20 border border-cyber-teal/30 flex items-center justify-center mb-4 glow-teal">
               <Shield className="w-8 h-8 text-cyber-teal" />
             </div>
-            <h1 className="text-xl font-bold text-white tracking-tight">ZTA Dashboard</h1>
-            <p className="text-cyber-muted text-xs mt-1 tracking-wide">ZERO TRUST ANOMALY DETECTION</p>
+            <h1 className="text-xl font-bold text-white tracking-tight">{t('login.title')}</h1>
+            <p className="text-cyber-teal text-xs mt-1 tracking-wide font-medium">{t('login.subtitle')}</p>
           </div>
 
           {/* Error */}
@@ -65,31 +67,31 @@ export default function Login() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-cyber-muted mb-1.5 font-medium">USERNAME</label>
+              <label className="block text-xs text-cyber-muted mb-1.5 font-medium">{t('login.username')}</label>
               <input
                 type="text"
                 id="username"
                 autoComplete="username"
-                placeholder="admin"
+                placeholder={t('login.username_placeholder')}
                 value={form.username}
                 onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
                 required
-                className="w-full"
+                className="w-full bg-cyber-bg/50 focus:bg-cyber-bg"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-cyber-muted mb-1.5 font-medium">PASSWORD</label>
+              <label className="block text-xs text-cyber-muted mb-1.5 font-medium">{t('login.password')}</label>
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
                   id="password"
                   autoComplete="current-password"
-                  placeholder="••••••••"
+                  placeholder={t('login.password_placeholder')}
                   value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   required
-                  className="w-full pr-10"
+                  className="w-full pr-10 bg-cyber-bg/50 focus:bg-cyber-bg"
                 />
                 <button type="button" onClick={() => setShowPw(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-white transition-colors">
@@ -101,28 +103,29 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-2.5 rounded-lg font-semibold text-sm transition-all
-                         bg-gradient-to-r from-cyber-teal to-cyber-blue text-cyber-bg
-                         hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
+              className="w-full mt-4 py-2.5 rounded-lg font-bold text-sm transition-all duration-300
+                         bg-gradient-to-r from-cyber-teal to-cyber-blue text-cyber-bg shadow-lg shadow-cyber-teal/20
+                         hover:shadow-cyber-teal/40 hover:-translate-y-0.5
+                         active:scale-[0.98] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed
                          flex items-center justify-center gap-2"
             >
               {loading ? (
-                <><div className="w-4 h-4 border-2 border-cyber-bg/40 border-t-cyber-bg rounded-full animate-spin" />Authenticating...</>
+                <><div className="w-4 h-4 border-2 border-cyber-bg/40 border-t-cyber-bg rounded-full animate-spin" />{t('login.authenticating')}</>
               ) : (
-                <><Lock className="w-4 h-4" />Sign In</>
+                <><Lock className="w-4 h-4" />{t('login.signin')}</>
               )}
             </button>
           </form>
 
           {/* Hint */}
           <p className="text-center text-xs text-cyber-muted mt-6">
-            Default: <code className="bg-cyber-bg px-1.5 py-0.5 rounded text-cyber-teal font-mono">admin</code> / <code className="bg-cyber-bg px-1.5 py-0.5 rounded text-cyber-teal font-mono">admin123</code>
+            {t('login.default_hint')} <code className="bg-cyber-bg px-1.5 py-0.5 rounded text-cyber-teal font-mono">admin</code> / <code className="bg-cyber-bg px-1.5 py-0.5 rounded text-cyber-teal font-mono">admin123</code>
           </p>
         </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-cyber-muted/50 mt-4">
-          Research Platform · Big Data Analytics + Zero Trust Architecture
+          {t('login.footer')}
         </p>
       </div>
     </div>

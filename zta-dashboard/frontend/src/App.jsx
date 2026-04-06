@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import './i18n.js'
 import Login     from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 

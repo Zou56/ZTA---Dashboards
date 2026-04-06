@@ -1,0 +1,135 @@
+{
+  "login": {
+    "title": "ZTA Dashboard",
+    "subtitle": "ZERO TRUST ANOMALY DETECTION",
+    "failed": "Login failed. Please try again.",
+    "username": "USERNAME",
+    "username_placeholder": "admin",
+    "password": "PASSWORD",
+    "password_placeholder": "••••••••",
+    "authenticating": "Authenticating...",
+    "signin": "Sign In",
+    "default_hint": "Default:",
+    "footer": "Research Platform · Big Data Analytics + Zero Trust Architecture"
+  },
+  "navbar": {
+    "brand": "ZTA Dashboard",
+    "anomaly_detection": "· Anomaly Detection",
+    "status_dataset": "Dataset",
+    "status_model": "Model",
+    "status_predictions": "Predictions",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Anomaly Detection Dashboard",
+    "subtitle": "Big Data Analytics · Zero Trust Architecture · Isolation Forest",
+    "bot_on": "Security Bot ON",
+    "bot_off": "Security Bot OFF",
+    "export_csv": "Export CSV",
+    "upload": {
+      "title": "Upload Dataset",
+      "desc": "CSV file (dataset_fixed.csv)",
+      "processing": "Processing…"
+    },
+    "train": {
+      "title": "Train Model",
+      "desc": "Isolation Forest · contamination=0.15",
+      "processing": "Training…"
+    },
+    "detect": {
+      "title": "Run Detection",
+      "desc": "Predict + Zero Trust decisions",
+      "processing": "Detecting anomalies…"
+    },
+    "simulate": {
+      "title": "Simulate Attack",
+      "desc": "Inject malicious session",
+      "processing": "Injecting payload…"
+    },
+    "metrics": {
+      "total_users": "Total Users",
+      "unique_ids": "Unique user IDs",
+      "anomalies_found": "Anomalies Found",
+      "of_sessions": "of sessions",
+      "run_detection": "Run detection",
+      "accuracy": "Accuracy",
+      "iso_forest": "Isolation Forest",
+      "f1_score": "F1-Score",
+      "auc": "AUC:",
+      "model_not_run": "Model not run"
+    },
+    "charts": {
+      "zta_distribution": "Zero Trust Decision Distribution",
+      "anomaly_vs_normal": "Anomaly vs. Normal Sessions",
+      "anomaly_score_time": "Anomaly Score Over Time",
+      "confusion_matrix": "Confusion Matrix",
+      "performance_radar": "Model Performance Radar",
+      "precision": "Precision",
+      "recall": "Recall",
+      "f1_score": "F1-Score",
+      "roc_auc": "ROC AUC",
+      "allow": "ALLOW",
+      "verify": "VERIFY",
+      "deny": "DENY"
+    },
+    "bot_modal": {
+      "title": "AI Security Bot",
+      "subtitle": "Telegram Real-time Alerts & Analysis",
+      "token_label": "Bot Token (@BotFather)",
+      "token_placeholder": "0000000000:ABC...",
+      "chatid_label": "Target Chat ID (@userinfobot)",
+      "chatid_placeholder": "123456789",
+      "rt_notif": "Real-time Notifications",
+      "rt_notif_desc": "Send AI-analyzed alerts for high risk events",
+      "cancel": "Cancel",
+      "save": "Save Config",
+      "note": "Note: Telegram alert logic uses simulated AI analysis for anomalous sessions."
+    },
+    "toasts": {
+      "upload_first": "Upload a dataset first.",
+      "train_first": "Train the model first.",
+      "run_detect_first": "Run detection first.",
+      "export_success": "CSV exported successfully",
+      "export_failed": "Export failed",
+      "bot_updated": "Bot configuration updated",
+      "bot_failed": "Failed to update bot config"
+    }
+  },
+  "table": {
+    "title": "Activity Log",
+    "showing": "Showing {{num}} records",
+    "search": "Search user or location...",
+    "all_decisions": "All Decisions",
+    "loading": "Loading data...",
+    "no_data": "No data. Upload a dataset to begin.",
+    "page": "Page {{page}} of {{pages}}",
+    "cols": {
+      "user_id": "User ID",
+      "timestamp": "Timestamp",
+      "location": "Location",
+      "device": "Device",
+      "login": "Login",
+      "activity": "Activity",
+      "score": "Score",
+      "prediction": "Prediction",
+      "zta": "ZTA Decision"
+    },
+    "anomaly": "Anomaly",
+    "normal": "Normal"
+  },
+  "charts_cmp": {
+    "normal": "Normal",
+    "anomaly": "Anomaly",
+    "score": "Score",
+    "tn_desc": "True Negative",
+    "fp_desc": "False Positive",
+    "fn_desc": "False Negative",
+    "tp_desc": "True Positive",
+    "empty": "Run detection to populate charts",
+    "accuracy": "Accuracy",
+    "precision": "Precision",
+    "recall": "Recall",
+    "f1_score": "F1-Score",
+    "roc_auc": "ROC AUC"
+  }
+}
