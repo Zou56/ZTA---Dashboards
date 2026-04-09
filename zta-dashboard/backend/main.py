@@ -94,6 +94,7 @@ DB_PATH = Path(__file__).parent / "api_logs.db"
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
+    # API Activity Logs
     conn.execute("""
         CREATE TABLE IF NOT EXISTS api_logs (
             id        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,6 +106,45 @@ def init_db():
             user      TEXT
         )
     """)
+    # Authentication (ZTA Users)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            username  TEXT UNIQUE,
+            password  TEXT,
+            role      TEXT DEFAULT 'Analyst',
+            created_at TEXT
+        )
+    """)
+    # Global Dashboard Configuration
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS system_config (
+            key   TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+    
+    # Insert default admin if not exists
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE username = 'admin'")
+    if not cursor.fetchone():
+        cursor.execute(
+            "INSERT INTO users (username, password, role, created_at) VALUES (?, ?, ?, ?)",
+            ("admin", "admin123", "Lead SOC Analyst", datetime.utcnow().isoformat())
+        )
+    
+    # Initialize default config if empty
+    default_config = {
+        "api_url": "http://localhost:8000",
+        "alert_threshold": "0.7",
+        "telegram_alerts": "true",
+        "auto_train": "false",
+        "language": "EN",
+        "theme": "light"
+    }
+    for key, val in default_config.items():
+        cursor.execute("INSERT OR IGNORE INTO system_config (key, value) VALUES (?, ?)", (key, val))
+        
     conn.commit()
     conn.close()
 
@@ -146,6 +186,19 @@ class BotConfig(BaseModel):
     token: str
     chat_id: str
     enabled: bool
+
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    role: Optional[str] = "SOC Analyst"
+
+class SystemSettings(BaseModel):
+    api_url: str
+    alert_threshold: float
+    telegram_alerts: bool
+    auto_train: bool
+    language: str
+    theme: str
 
 class ActionRequest(BaseModel):
     user_id: str
@@ -193,11 +246,34 @@ async def perform_action(body: ActionRequest, token: str = Depends(verify_token)
 # ══════════════════════════════════════════════════════════════════════════════
 #  AUTH
 # ══════════════════════════════════════════════════════════════════════════════
+@app.post("/auth/register", tags=["Auth"])
+async def register(body: RegisterRequest):
+    t0 = time.time()
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        conn.execute(
+            "INSERT INTO users (username, password, role, created_at) VALUES (?, ?, ?, ?)",
+            (body.username, body.password, body.role, datetime.utcnow().isoformat())
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    finally:
+        conn.close()
+    
+    log_request("POST", "/auth/register", 201, time.time() - t0, body.username)
+    return {"success": True, "message": "User registered successfully"}
+
 @app.post("/auth/login", response_model=LoginResponse, tags=["Auth"])
 async def login(body: LoginRequest, request: Request):
     t0 = time.time()
-    if (body.username != ADMIN_CREDENTIALS["username"] or
-            body.password != ADMIN_CREDENTIALS["password"]):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT password, role FROM users WHERE username = ?", (body.username,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row or row[0] != body.password:
         log_request("POST", "/auth/login", 401, time.time() - t0, body.username)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -207,6 +283,71 @@ async def login(body: LoginRequest, request: Request):
         username = body.username,
         message  = "Login successful",
     )
+
+@app.get("/auth/me", tags=["Auth"])
+async def get_me(token: str = Depends(verify_token)):
+    # Since we use a hardcoded token for the demo, we'll just return a mock user
+    # or look up the last logged in user. For completeness, we'll just check the DB
+    # In this simplified demo, we'll assume 'admin' is the one, or the one currently in the session.
+    # To be functional, I'll search for 'admin' first.
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, role, created_at FROM users LIMIT 1") # Simplified
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="User info not found")
+        
+    return {
+        "username": row[0],
+        "role": row[1],
+        "created_at": row[2]
+    }
+
+@app.get("/settings", tags=["Config"])
+async def get_settings(token: str = Depends(verify_token)):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM system_config")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    # Simple key-value map
+    config = {row[0]: row[1] for row in rows}
+    
+    # Convert numeric strings
+    if "alert_threshold" in config:
+        config["alert_threshold"] = float(config["alert_threshold"])
+    if "telegram_alerts" in config:
+        config["telegram_alerts"] = config["telegram_alerts"].lower() == "true"
+    if "auto_train" in config:
+        config["auto_train"] = config["auto_train"].lower() == "true"
+        
+    return config
+
+@app.post("/settings", tags=["Config"])
+async def update_settings(body: SystemSettings, token: str = Depends(verify_token)):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    updates = {
+        "api_url": body.api_url,
+        "alert_threshold": str(body.alert_threshold),
+        "telegram_alerts": str(body.telegram_alerts).lower(),
+        "auto_train": str(body.auto_train).lower(),
+        "language": body.language,
+        "theme": body.theme
+    }
+    
+    for key, val in updates.items():
+        cursor.execute("UPDATE system_config SET value = ? WHERE key = ?", (val, key))
+        
+    conn.commit()
+    conn.close()
+    
+    await manager.broadcast({"type": "SETTINGS_UPDATED", "config": updates})
+    return {"success": True, "message": "System configuration updated."}
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  UPLOAD

@@ -1,24 +1,41 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        cyber: {
-          bg:      '#050814',
-          card:    '#090d19',
-          border:  '#1e2d4a',
-          muted:   '#8b949e',
-          teal:    '#22d3ee',
-          violet:  '#a78bfa',
-          rose:    '#f43f5e',
-          amber:   '#fbbf24',
-          green:   '#34d399',
-          blue:    '#60a5fa',
+        phoenix: {
+          primary: '#1A4D8C', // Deep Azure
+          secondary: '#407CC7', // Trust Blue
+          accent: '#78909C', // Slate Accent
+          success: '#2E7D32', // Deep Emerald
+          warning: '#F9A825', // Amber
+          danger: '#D32F2F', // Deep Red
+          bg: '#E3F2FD', // Light Sky Blue
+          card: '#FFFFFF',
+          'text-main': '#011F3F', // Midnight Navy
+          'text-muted': '#455A64', // Dark Slate Grey
+          border: '#CFD8DC', // Soft Grey Blue
         },
       },
+      fontSize: {
+        'readable-xs': ['0.85rem', { lineHeight: '1.25' }],
+        'readable-sm': ['1rem', { lineHeight: '1.5' }],
+        'readable-base': ['1.125rem', { lineHeight: '1.6' }],
+        'readable-lg': ['1.25rem', { lineHeight: '1.6' }],
+        'readable-xl': ['1.5rem', { lineHeight: '1.4' }],
+      },
+      boxShadow: {
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'premium': '0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+      },
+      borderRadius: {
+        'xl': '1rem',
+        '2xl': '1.5rem',
+      },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'Outfit', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       animation: {

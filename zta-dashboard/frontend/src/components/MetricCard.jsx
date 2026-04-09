@@ -1,47 +1,64 @@
 import React from 'react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 
 export default function MetricCard({ icon: Icon, label, value, sub, color = 'blue', loading = false, trend = null }) {
   const colors = {
-    blue:   'bg-[#58a6ff15] text-[#58a6ff] border-[#58a6ff30]',
-    teal:   'bg-[#3fb95015] text-[#3fb950] border-[#3fb95030]',
-    rose:   'bg-[#f8514915] text-[#f85149] border-[#f8514930]',
-    orange: 'bg-[#f0883e15] text-[#f0883e] border-[#f0883e30]',
-    violet: 'bg-[#bc8cff15] text-[#bc8cff] border-[#bc8cff30]',
-    amber:  'bg-[#d2992215] text-[#d29922] border-[#d2992230]',
+    blue:   'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800',
+    teal:   'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800',
+    rose:   'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800',
+    orange: 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-800',
+    violet: 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-800',
+    amber:  'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800',
   }
 
   const selectedColor = colors[color] || colors.blue
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 transition-all hover:bg-[#1c222b] hover:border-[#484f58] shadow-sm flex items-start gap-4 h-full">
-      <div className={`p-2.5 rounded-lg border flex-shrink-0 ${selectedColor}`}>
-        <Icon className="w-5 h-5 flex-shrink-0" />
+    <div className="px-card p-8 group flex flex-col h-full relative overflow-hidden transition-all duration-300">
+      {/* Background Accent Gradient */}
+      <div className={`absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 rounded-full opacity-[0.05] dark:opacity-[0.1] ${selectedColor.split(' ')[0]}`}></div>
+      
+      <div className="flex items-center justify-between mb-6">
+        <div className={`p-4 rounded-2xl border flex-shrink-0 shadow-sm ${selectedColor} transition-transform group-hover:scale-110 duration-500`}>
+          <Icon className="w-7 h-7 flex-shrink-0" />
+        </div>
+        
+        {trend !== null && !loading && (
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ${trend >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400'}`}>
+            {trend >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+            {Math.abs(trend)}%
+          </div>
+        )}
       </div>
       
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] font-bold text-[#8b949e] uppercase tracking-widest leading-tight">
+        <div className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] leading-tight mb-2.5">
           {label}
         </div>
         
-        <div className="mt-1 flex items-baseline gap-2">
+        <div className="flex items-baseline gap-2">
           {loading ? (
-            <div className="h-6 w-16 bg-[#21262d] animate-pulse rounded"></div>
+            <div className="h-10 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl mt-1"></div>
           ) : (
-            <span className="text-xl font-black text-[#f0f6fc] leading-tight">
+            <span className="text-3xl font-extrabold text-slate-900 dark:text-white leading-tight tracking-tight">
               {value}
-            </span>
-          )}
-          
-          {trend !== null && !loading && (
-            <span className={`text-[10px] font-bold ${trend >= 0 ? 'text-[#3fb950]' : 'text-[#f85149]'}`}>
-              {trend >= 0 ? '▲' : '▼'} {Math.abs(trend)}%
             </span>
           )}
         </div>
         
-        <div className="mt-1.5 text-[10px] text-[#484f58] font-medium truncate italic leading-tight">
-          {sub}
+        <div className="mt-5 flex items-center gap-2">
+           <div className="text-[12px] text-slate-500 dark:text-slate-400 font-bold truncate leading-tight bg-slate-50 dark:bg-slate-800/50 px-3 py-1 rounded-xl border border-slate-100 dark:border-slate-800 inline-block shadow-sm">
+             {sub}
+           </div>
         </div>
+      </div>
+      
+      {/* Mini Visual Indicator - Progress bar style */}
+      <div className="mt-8 w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+         <div 
+           className={`h-full rounded-full transition-all duration-1000 ${selectedColor.split(' ')[2].replace('text-', 'bg-')}`} 
+           style={{ width: loading ? '30%' : '75%' }}
+         ></div>
       </div>
     </div>
   )

@@ -10,6 +10,8 @@ import Reports   from './pages/Reports.jsx'
 import Settings  from './pages/Settings.jsx'
 import Profile   from './pages/Profile.jsx'
 import { RealtimeProvider } from './context/RealtimeContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
 
 // ─── Auth context ─────────────────────────────────────────────────────────────
 
@@ -34,22 +36,26 @@ function PrivateRoute({ children }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <RealtimeProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/"      element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/assets"    element={<PrivateRoute><Assets /></PrivateRoute>} />
-            <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
-            <Route path="/datasets"  element={<PrivateRoute><Datasets /></PrivateRoute>} />
-            <Route path="/reports"   element={<PrivateRoute><Reports /></PrivateRoute>} />
-            <Route path="/settings"  element={<PrivateRoute><Settings /></PrivateRoute>} />
-            <Route path="/profile"   element={<PrivateRoute><Profile /></PrivateRoute>} />
-            <Route path="*"      element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </RealtimeProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <RealtimeProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/"      element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                <Route path="/assets"    element={<PrivateRoute><Assets /></PrivateRoute>} />
+                <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+                <Route path="/datasets"  element={<PrivateRoute><Datasets /></PrivateRoute>} />
+                <Route path="/reports"   element={<PrivateRoute><Reports /></PrivateRoute>} />
+                <Route path="/settings"  element={<PrivateRoute><Settings /></PrivateRoute>} />
+                <Route path="/profile"   element={<PrivateRoute><Profile /></PrivateRoute>} />
+                <Route path="*"      element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </RealtimeProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
   )
 }
